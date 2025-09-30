@@ -1,0 +1,340 @@
+.upi-payment-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.payment-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.payment-header h2 {
+    color: #2c3e50;
+    margin: 0 0 10px 0;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.payment-header h2 i {
+    color: #6c63ff;
+}
+
+.payment-header p {
+    color: #666;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.payment-details {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row .label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.detail-row .value {
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.detail-row .value.upi-id {
+    font-family: 'Courier New', monospace;
+    background: #e3f2fd;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #1565c0;
+    font-weight: 600;
+}
+
+.qr-section {
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.qr-section h3 {
+    color: #2c3e50;
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+}
+
+.qr-container {
+    display: inline-block;
+    padding: 15px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+}
+
+.qr-code {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+}
+
+.copy-btn {
+    background: #6c63ff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.copy-btn:hover {
+    background: #5a52d5;
+}
+
+.payment-instructions {
+    background: #e8f5e8;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border-left: 4px solid #4caf50;
+}
+
+.payment-instructions h3 {
+    color: #2e7d32;
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+}
+
+.payment-instructions ol {
+    margin: 0;
+    padding-left: 20px;
+    color: #2e7d32;
+}
+
+.payment-instructions li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.payment-instructions strong {
+    color: #1b5e20;
+}
+
+.verification-section {
+    background: #fff3cd;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border-left: 4px solid #ffc107;
+}
+
+.verification-section h3 {
+    color: #856404;
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #856404;
+    font-size: 0.95rem;
+}
+
+.transaction-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ffeaa7;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    color: #495057;
+    transition: border-color 0.3s ease;
+}
+
+.transaction-input:focus {
+    outline: none;
+    border-color: #ffc107;
+    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+}
+
+.verify-btn {
+    width: 100%;
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.verify-btn:hover:not(:disabled) {
+    background: #218838;
+}
+
+.verify-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.payment-note {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #2196f3;
+}
+
+.payment-note p {
+    margin: 0;
+    color: #1565c0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.payment-note i {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #6c63ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+.spinner-small {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    text-align: center;
+    padding: 30px 20px;
+    color: #721c24;
+}
+
+.error-message i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.7;
+}
+
+.error-message h3 {
+    margin: 0 0 10px 0;
+    color: #721c24;
+}
+
+.error-message p {
+    margin: 0 0 20px 0;
+    color: #721c24;
+}
+
+.retry-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.retry-btn:hover {
+    background: #c82333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .upi-payment-container {
+        padding: 20px;
+        margin: 10px;
+    }
+
+    .payment-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .qr-code {
+        width: 150px;
+        height: 150px;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .detail-row .value {
+        align-self: flex-end;
+    }
+}

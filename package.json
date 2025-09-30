@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "react-multi-date-picker-calendar": "^1.0.42",
+    "react-toastify": "^11.0.5"
+  }
+}
