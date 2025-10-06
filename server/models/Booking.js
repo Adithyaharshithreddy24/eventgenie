@@ -1,78 +1,79 @@
 const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema({
-    customerId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Customer', 
-        required: true 
+    customerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Customer',
+        required: true
+
     },
-    vendorId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Vendor', 
-        required: true 
+    vendorId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Vendor',
+        required: true
     },
-    serviceId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Service', 
-        required: true 
+    serviceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Service',
+        required: true
     },
-    eventDate: { 
-        type: String, 
-        required: true 
-    }, // YYYY-MM-DD format
-    totalAmount: { 
-        type: Number, 
-        required: true 
-    },
-    advanceAmount: { 
-        type: Number, 
-        required: true 
-    }, // 5% of total amount
-    advanceAmountPaid: { 
-        type: Boolean, 
-        default: false 
-    },
-    upiTransactionId: { 
-        type: String 
-    }, // UPI transaction ID
-    advancePaymentExpiry: { 
-        type: Date 
-    }, // 12 hours from vendor approval
-    status: { 
+    eventDate: {
         type: String,
-        default: 'pending' 
+        required: true
+    }, // YYYY-MM-DD format
+    totalAmount: {
+        type: Number,
+        required: true
     },
-    vendorApprovalDate: { 
-        type: Date 
+    advanceAmount: {
+        type: Number,
+        required: true
+    }, // 5% of total amount
+    advanceAmountPaid: {
+        type: Boolean,
+        default: false
     },
-    advancePaymentDate: { 
-        type: Date 
+    upiTransactionId: {
+        type: String
+    }, // UPI transaction ID
+    advancePaymentExpiry: {
+        type: Date
+    }, // 12 hours from vendor approval
+    status: {
+        type: String,
+        default: 'pending'
     },
-    customerName: { 
-        type: String, 
-        required: true 
+    vendorApprovalDate: {
+        type: Date
     },
-    customerEmail: { 
-        type: String, 
-        required: true 
+    advancePaymentDate: {
+        type: Date
     },
-    customerPhone: { 
-        type: String, 
-        required: true 
+    customerName: {
+        type: String,
+        required: true
     },
-    serviceName: { 
-        type: String, 
-        required: true 
+    customerEmail: {
+        type: String,
+        required: true
     },
-    vendorName: { 
-        type: String, 
-        required: true 
+    customerPhone: {
+        type: String,
+        required: true
     },
-    notes: { 
-        type: String 
+    serviceName: {
+        type: String,
+        required: true
     },
-    vendorNotes: { 
-        type: String 
+    vendorName: {
+        type: String,
+        required: true
+    },
+    notes: {
+        type: String
+    },
+    vendorNotes: {
+        type: String
     }
 }, {
     timestamps: true
