@@ -1,6 +1,6 @@
 import { StrictMode, useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './style.css';
@@ -182,6 +182,8 @@ function App() {
   };
 
   // Logout handler
+  const navigate = useNavigate();
+
   const logout = () => {
     setCurrentCustomer(null);
     setCurrentVendor(null);
@@ -189,6 +191,7 @@ function App() {
     localStorage.removeItem('customerSession');
     localStorage.removeItem('vendorSession');
     localStorage.removeItem('cartSession'); // Clear cart from localStorage
+    navigate('/');
   };
 
   // Bookings: add a booking to the current customer and to the respective vendors
@@ -354,7 +357,7 @@ function App() {
       {/* Notification Sidebar */}
       {(isLoggedIn || isVendorLoggedIn) && (
         <NotificationSidebar
-          userId={currentCustomer?._id || currentVendor?._id}
+          userId={currentCustomer?.id || currentVendor?.id}
           userType={currentCustomer ? 'customer' : 'vendor'}
           isOpen={notificationSidebarOpen}
           onClose={handleNotificationClose}

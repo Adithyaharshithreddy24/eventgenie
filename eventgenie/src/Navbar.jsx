@@ -1,16 +1,20 @@
 import './style.css';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import API_BASE_URL from './config/api';
 
 function Navbar({ isLoggedIn, isVendorLoggedIn, currentCustomer, currentVendor, logout, vendorTab, setVendorTab, selectedServices = [], onNotificationClick }) {
     const [unreadCount, setUnreadCount] = useState(0);
+    const navigate = useNavigate();
+    const isAdminLoggedIn = !!localStorage.getItem('adminSession');
 
     const fetchUnreadCount = async () => {
-        if (!currentCustomer?._id && !currentVendor?._id) return;
-        
+        const userId = currentCustomer?.id || currentVendor?.id;
+        const recipientType = currentCustomer ? 'customer' : (currentVendor ? 'vendor' : null);
+        if (!userId || !recipientType) return;
+
         try {
-            const userId = currentCustomer?._id || currentVendor?._id;
-            const response = await fetch(`http://localhost:5001/api/notifications/${userId}/unread-count`);
+            const response = await fetch(`${API_BASE_URL}/api/notifications/${userId}/unread-count?recipientType=${recipientType}`);
             if (response.ok) {
                 const data = await response.json();
                 setUnreadCount(data.count);
@@ -36,15 +40,34 @@ function Navbar({ isLoggedIn, isVendorLoggedIn, currentCustomer, currentVendor, 
             clearInterval(interval);
             window.removeEventListener('refreshNotifications', handleRefreshNotifications);
         };
-    }, [currentCustomer?._id, currentVendor?._id]);
+    }, [currentCustomer?.id, currentVendor?.id]);
+
+    const handleAdminLogout = () => {
+        localStorage.removeItem('adminSession');
+        navigate('/');
+    };
     return (
         <header className="fade-in">
             <div className="logo">
                 <h1>EventGenie</h1>
+                {isAdminLoggedIn && (
+                    <div className="logo">
+                        <h1>Admin Dashboard</h1>
+                    </div>
+
+                )}
             </div>
             <nav>
                 <ul className={isVendorLoggedIn ? 'flex gap-4 items-center' : ''} style={isVendorLoggedIn ? { margin: 0 } : {}}>
-                    {isVendorLoggedIn ? (
+                    {isAdminLoggedIn ? (
+                        <>
+                        <li>
+                            <button className="btn secondary-btn" onClick={handleAdminLogout}>
+                                <i className="fas fa-sign-out-alt"></i> Admin Logout
+                            </button>
+                        </li></>
+                    ):
+                    isVendorLoggedIn ? (
                         <>
                             <li>
                                 <a href="#" className={vendorTab === 'services' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('services'); }}>

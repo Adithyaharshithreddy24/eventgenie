@@ -6,9 +6,12 @@ const Notification = require('../models/Notification');
 router.get('/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
-        const { limit = 20, unreadOnly = false } = req.query;
+        const { limit = 20, unreadOnly = false, recipientType } = req.query;
 
         let query = { recipientId: userId };
+        if (recipientType) {
+            query.recipientType = recipientType;
+        }
         if (unreadOnly === 'true') {
             query.isRead = false;
         }
@@ -67,11 +70,14 @@ router.put('/:userId/read-all', async (req, res) => {
 router.get('/:userId/unread-count', async (req, res) => {
     try {
         const { userId } = req.params;
+        const { recipientType } = req.query;
         
-        const count = await Notification.countDocuments({
-            recipientId: userId,
-            isRead: false
-        });
+        const countQuery = { recipientId: userId, isRead: false };
+        if (recipientType) {
+            countQuery.recipientType = recipientType;
+        }
+
+        const count = await Notification.countDocuments(countQuery);
 
         res.json({ count });
     } catch (error) {

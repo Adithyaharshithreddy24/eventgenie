@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import './NotificationSidebar.css';
+import API_BASE_URL from './config/api';
 
-const NotificationSidebar = ({ userId, userType, isOpen, onClose }) => {
+const NotificationSidebar = ({ userId, userType, isOpen , onClose }) => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -10,7 +11,7 @@ const NotificationSidebar = ({ userId, userType, isOpen, onClose }) => {
     const fetchNotifications = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`http://localhost:5001/api/notifications/${userId}`);
+            const response = await fetch(`${API_BASE_URL}/api/notifications/${userId}?recipientType=${userType}`);
             if (response.ok) {
                 const data = await response.json();
                 setNotifications(data);
@@ -38,7 +39,7 @@ const NotificationSidebar = ({ userId, userType, isOpen, onClose }) => {
 
     const fetchUnreadCount = async () => {
         try {
-            const response = await fetch(`http://localhost:5001/api/notifications/${userId}/unread-count`);
+            const response = await fetch(`${API_BASE_URL}/api/notifications/${userId}/unread-count?recipientType=${userType}`);
             if (response.ok) {
                 const data = await response.json();
                 setUnreadCount(data.count);
@@ -50,7 +51,7 @@ const NotificationSidebar = ({ userId, userType, isOpen, onClose }) => {
 
     const markAsRead = async (notificationId) => {
         try {
-            const response = await fetch(`http://localhost:5001/api/notifications/${notificationId}/read`, {
+            const response = await fetch(`${API_BASE_URL}/api/notifications/${notificationId}/read`, {
                 method: 'PUT'
             });
             if (response.ok) {
@@ -70,7 +71,7 @@ const NotificationSidebar = ({ userId, userType, isOpen, onClose }) => {
 
     const markAllAsRead = async () => {
         try {
-            const response = await fetch(`http://localhost:5001/api/notifications/${userId}/read-all`, {
+            const response = await fetch(`${API_BASE_URL}/api/notifications/${userId}/read-all`, {
                 method: 'PUT'
             });
             if (response.ok) {
@@ -140,7 +141,7 @@ const NotificationSidebar = ({ userId, userType, isOpen, onClose }) => {
     }, [userId]);
 
     if (!isOpen) return null;
-
+  
     return (
         <div className="notification-sidebar-overlay" onClick={onClose}>
             <div className="notification-sidebar" onClick={(e) => e.stopPropagation()}>

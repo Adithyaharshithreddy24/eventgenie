@@ -186,13 +186,7 @@ function AdminPortal() {
         );}
     return (
         <div className="admin-portal-container">
-            <div className="admin-header">
-                <h1>👨‍💼 Admin Dashboard</h1>
-                <div className="admin-info">
-                    <span>Welcome, {admin?.username}</span>
-                    <button onClick={logout} className="logout-btn">Logout</button>
-                </div>
-            </div>
+            
 
             {/* Dashboard Summary */}
             <div className="dashboard-summary">
