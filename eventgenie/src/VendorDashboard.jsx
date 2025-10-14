@@ -1792,19 +1792,38 @@ function BlockServicesSection({ vendor, myServices, fetchVendorServices }) {
     const getBlockedServicesForDate = (dateKey) => {
         return myServices.filter(s => (s.blockedDates || []).includes(dateKey));
     };
-    // Helper: Get bookings for a date
-    const getBookingsForDate = (dateKey) => {
-        let bookings = [];
+    // Helper: Get confirmed bookings for a date (payment verified)
+    const getConfirmedBookingsForDate = (dateKey) => {
+        let confirmedBookings = [];
         myServices.forEach(s => {
-            if (s.bookings) {
+            if (s.blockedDates && s.blockedDates.includes(dateKey)) {
+                // If date is in blockedDates, it means payment was verified
+                // Find the corresponding booking for this service and date
+                if (s.bookings) {
+                    s.bookings.forEach(b => {
+                        if (b.bookedForDate === dateKey && b.status === 'confirmed') {
+                            confirmedBookings.push({ service: s, booking: b });
+                        }
+                    });
+                }
+            }
+        });
+        return confirmedBookings;
+    };
+
+    // Helper: Get pending bookings for a date (not yet payment verified)
+    const getPendingBookingsForDate = (dateKey) => {
+        let pendingBookings = [];
+        myServices.forEach(s => {
+            if (s.bookings && (!s.blockedDates || !s.blockedDates.includes(dateKey))) {
                 s.bookings.forEach(b => {
-                    if (b.bookedForDate === dateKey && b.status !== 'cancelled') {
-                        bookings.push({ service: s, booking: b });
+                    if (b.bookedForDate === dateKey && b.status === 'pending') {
+                        pendingBookings.push({ service: s, booking: b });
                     }
                 });
             }
         });
-        return bookings;
+        return pendingBookings;
     };
 
     const handleServiceToggle = (serviceId) => {
@@ -1887,16 +1906,18 @@ function BlockServicesSection({ vendor, myServices, fetchVendorServices }) {
                             {Array(daysInMonth).fill(null).map((_, i) => {
                                 const dateObj = new Date(year, month, i + 1);
                                 const key = getDateKey(dateObj);
-                                const blockedServices = getBlockedServicesForDate(key);
-                                const bookings = getBookingsForDate(key);
+                                const confirmedBookings = getConfirmedBookingsForDate(key);
+                                const pendingBookings = getPendingBookingsForDate(key);
                                 let dayClass = 'calendar-day';
-                                if (blockedServices.length > 0 && bookings.length > 0) {
-                                    dayClass += ' calendar-day-blocked-booked'; // purple
-                                } else if (blockedServices.length > 0) {
-                                    dayClass += ' calendar-day-blocked'; // red
-                                } else if (bookings.length > 0) {
+                                
+                                // Show green for confirmed bookings (payment verified)
+                                if (confirmedBookings.length > 0) {
                                     dayClass += ' calendar-day-booked'; // green
+                                } else if (pendingBookings.length > 0) {
+                                    // Show different style for pending bookings
+                                    dayClass += ' calendar-day-blocked'; // red for pending
                                 }
+                                
                                 if (isSelected(dateObj)) dayClass += ' selected';
                                 if (dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate())) dayClass += ' calendar-day-disabled';
                                 return (
@@ -1909,22 +1930,22 @@ function BlockServicesSection({ vendor, myServices, fetchVendorServices }) {
                                         style={{ position: 'relative' }}
                                     >
                                         <span>{i + 1}</span>
-                                        {hoveredDate === key && (blockedServices.length > 0 || bookings.length > 0) && (
+                                        {hoveredDate === key && (confirmedBookings.length > 0 || pendingBookings.length > 0) && (
                                             <div className="calendar-tooltip">
-                                                {blockedServices.length > 0 && (
-                                                    <div><b>Blocked Services:</b>
+                                                {confirmedBookings.length > 0 && (
+                                                    <div><b>Confirmed Bookings (Payment Verified):</b>
                                                         <ol style={{ margin: 0, paddingLeft: 16 }}>
-                                                            {blockedServices.map(s => <li key={s._id}>{s.name}</li>)}
+                                                            {confirmedBookings.map(({ service, booking }, idx) => (
+                                                                <li key={idx}>{service.name} - {booking.customerName}</li>
+                                                            ))}
                                                         </ol>
-
                                                     </div>
                                                 )}
-                                                {bookings.length > 0 && (
-                                                    <div><b>Bookings:</b>
+                                                {pendingBookings.length > 0 && (
+                                                    <div><b>Pending Bookings (Awaiting Payment):</b>
                                                         <ol style={{ margin: 0, paddingLeft: 16 }}>
-                                                            {bookings.map(({ service, booking }, idx) => (
-                                                                <li key={idx}>{service.name}</li>
-
+                                                            {pendingBookings.map(({ service, booking }, idx) => (
+                                                                <li key={idx}>{service.name} - {booking.customerName}</li>
                                                             ))}
                                                         </ol>
                                                     </div>

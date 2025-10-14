@@ -29,7 +29,7 @@ router.post('/create', async (req, res) => {
         }
 
         // Check if service is available for the selected date
-        if (service.blockedDates.includes(eventDate)) {
+        if (service.blockedDates && service.blockedDates.includes(eventDate)) {
             return res.status(400).json({ message: 'Service is not available for the selected date' });
         }
 
@@ -54,6 +54,30 @@ router.post('/create', async (req, res) => {
         });
 
         await booking.save();
+
+        // Also add booking to the old system for compatibility with customer bookings display
+        const oldSystemBooking = {
+            customerId: customer._id,
+            customerName: customer.name,
+            customerEmail: customer.email,
+            customerPhone: customer.phone,
+            bookedForDate: eventDate,
+            dateBooked: new Date(),
+            status: 'pending'
+        };
+        
+        if (!service.bookings) {
+            service.bookings = [];
+        }
+        service.bookings.push(oldSystemBooking);
+        
+        // Add service to customer's booked services (if not already there)
+        if (!customer.bookedServiceIds.includes(serviceId)) {
+            customer.bookedServiceIds.push(serviceId);
+        }
+        
+        // Save both service and customer
+        await Promise.all([service.save(), customer.save()]);
 
         // Create notification for vendor
         const vendorNotification = new Notification({
@@ -127,6 +151,19 @@ router.put('/:bookingId/approve', async (req, res) => {
         }
 
         await booking.save();
+
+        // Update the old system booking status
+        const service = await Service.findById(booking.serviceId);
+        if (service && service.bookings) {
+            const oldBooking = service.bookings.find(b => 
+                b.customerId.toString() === booking.customerId.toString() && 
+                b.bookedForDate === booking.eventDate
+            );
+            if (oldBooking) {
+                oldBooking.status = status === 'approved' ? 'confirmed' : 'cancelled';
+                await service.save();
+            }
+        }
 
         // Create notification for customer
         const notificationType = status === 'approved' ? 'booking_approved' : 'booking_rejected';
@@ -308,6 +345,32 @@ router.post('/:bookingId/verify-payment-by-vendor', async (req, res) => {
             booking.vendorPaymentVerificationDate = new Date();
             booking.vendorPaymentVerificationNotes = notes || 'Payment verified successfully';
 
+            // Block the date on the service and update old system
+            const service = await Service.findById(booking.serviceId);
+            if (service) {
+                // Initialize blockedDates if it doesn't exist
+                if (!service.blockedDates) {
+                    service.blockedDates = [];
+                }
+                
+                if (!service.blockedDates.includes(booking.eventDate)) {
+                    service.blockedDates.push(booking.eventDate);
+                }
+                
+                // Update the old system booking status to confirmed
+                if (service.bookings) {
+                    const oldBooking = service.bookings.find(b => 
+                        b.customerId.toString() === booking.customerId.toString() && 
+                        b.bookedForDate === booking.eventDate
+                    );
+                    if (oldBooking) {
+                        oldBooking.status = 'confirmed';
+                    }
+                }
+                
+                await service.save();
+            }
+
             // Create notification for customer
             const customerNotification = new Notification({
                 recipientId: booking.customerId,
@@ -331,6 +394,19 @@ router.post('/:bookingId/verify-payment-by-vendor', async (req, res) => {
             booking.paymentVerificationStatus = 'failed';
             booking.vendorPaymentVerificationDate = new Date();
             booking.vendorPaymentVerificationNotes = notes || 'Payment verification failed';
+
+            // Update the old system booking status to cancelled
+            const service = await Service.findById(booking.serviceId);
+            if (service && service.bookings) {
+                const oldBooking = service.bookings.find(b => 
+                    b.customerId.toString() === booking.customerId.toString() && 
+                    b.bookedForDate === booking.eventDate
+                );
+                if (oldBooking) {
+                    oldBooking.status = 'cancelled';
+                    await service.save();
+                }
+            }
 
             // Create notification for customer
             const customerNotification = new Notification({
