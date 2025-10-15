@@ -91,7 +91,15 @@ router.post('/create', async (req, res) => {
             actionUrl: `/vendor/bookings/${booking._id}`
         });
 
+        console.log('Creating vendor notification:', {
+            recipientId: vendor._id,
+            recipientType: 'vendor',
+            vendorId: vendor._id,
+            vendorName: vendor.name
+        });
+
         await vendorNotification.save();
+        console.log('Vendor notification saved successfully');
 
         res.status(201).json({
             message: 'Booking request created successfully',

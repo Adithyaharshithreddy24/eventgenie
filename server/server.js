@@ -31,6 +31,7 @@ app.use('/api/vendors', require('./routes/vendorRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/support', require('./routes/supportRoutes'));
 
 // Root route
 app.get('/', (req, res) => {

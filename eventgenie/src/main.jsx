@@ -15,6 +15,7 @@ import MyCart from './MyCart.jsx';
 import VendorDashboard from './VendorDashboard.jsx';
 import AdminPortal from './AdminPortal.jsx';
 import NotificationSidebar from './NotificationSidebar.jsx';
+import HelpSupport from './HelpSupport.jsx';
 
 function App() {
   const [servicesList, setServicesList] = useState([]);
@@ -350,6 +351,7 @@ function App() {
         <Route path="/mycart" element={<MyCart selectedServices={selectedServices} clearSelectedServices={clearSelectedServices} isLoggedIn={isLoggedIn} addBooking={addBooking} toggleService={toggleService} />} />
         <Route path="/vendor-dashboard" element={<VendorDashboard vendor={currentVendor} isVendorLoggedIn={isVendorLoggedIn} logout={logout} servicesList={servicesList} setServicesList={setServicesList} vendorTab={vendorTab} setVendorTab={setVendorTab} />} />
         <Route path="/admin" element={<AdminPortal />} />
+        <Route path="/support" element={<HelpSupport user={currentVendor || currentCustomer} userType={currentVendor ? 'vendor' : 'customer'} />} />
       </Routes>
       
       <Footer />

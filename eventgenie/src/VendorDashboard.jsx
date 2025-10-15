@@ -1799,8 +1799,8 @@ function BlockServicesSection({ vendor, myServices, fetchVendorServices }) {
             if (s.blockedDates && s.blockedDates.includes(dateKey)) {
                 // If date is in blockedDates, it means payment was verified
                 // Find the corresponding booking for this service and date
-                if (s.bookings) {
-                    s.bookings.forEach(b => {
+            if (s.bookings) {
+                s.bookings.forEach(b => {
                         if (b.bookedForDate === dateKey && b.status === 'confirmed') {
                             confirmedBookings.push({ service: s, booking: b });
                         }
@@ -1908,14 +1908,18 @@ function BlockServicesSection({ vendor, myServices, fetchVendorServices }) {
                                 const key = getDateKey(dateObj);
                                 const confirmedBookings = getConfirmedBookingsForDate(key);
                                 const pendingBookings = getPendingBookingsForDate(key);
+                                const vendorBlocked = getBlockedServicesForDate(key);
                                 let dayClass = 'calendar-day';
                                 
                                 // Show green for confirmed bookings (payment verified)
                                 if (confirmedBookings.length > 0) {
                                     dayClass += ' calendar-day-booked'; // green
+                                } else if (vendorBlocked.length > 0) {
+                                    // Red for vendor-blocked dates without confirmed booking
+                                    dayClass += ' calendar-day-blocked';
                                 } else if (pendingBookings.length > 0) {
-                                    // Show different style for pending bookings
-                                    dayClass += ' calendar-day-blocked'; // red for pending
+                                    // Red for pending requests as well
+                                    dayClass += ' calendar-day-blocked';
                                 }
                                 
                                 if (isSelected(dateObj)) dayClass += ' selected';
@@ -1930,7 +1934,7 @@ function BlockServicesSection({ vendor, myServices, fetchVendorServices }) {
                                         style={{ position: 'relative' }}
                                     >
                                         <span>{i + 1}</span>
-                                        {hoveredDate === key && (confirmedBookings.length > 0 || pendingBookings.length > 0) && (
+                                        {hoveredDate === key && (confirmedBookings.length > 0 || pendingBookings.length > 0 || vendorBlocked.length > 0) && (
                                             <div className="calendar-tooltip">
                                                 {confirmedBookings.length > 0 && (
                                                     <div><b>Confirmed Bookings (Payment Verified):</b>
@@ -1946,6 +1950,15 @@ function BlockServicesSection({ vendor, myServices, fetchVendorServices }) {
                                                         <ol style={{ margin: 0, paddingLeft: 16 }}>
                                                             {pendingBookings.map(({ service, booking }, idx) => (
                                                                 <li key={idx}>{service.name} - {booking.customerName}</li>
+                                                            ))}
+                                                        </ol>
+                                                    </div>
+                                                )}
+                                                {vendorBlocked.length > 0 && confirmedBookings.length === 0 && (
+                                                    <div><b>Blocked by You:</b>
+                                                        <ol style={{ margin: 0, paddingLeft: 16 }}>
+                                                            {vendorBlocked.map((service) => (
+                                                                <li key={service._id}>{service.name}</li>
                                                             ))}
                                                         </ol>
                                                     </div>

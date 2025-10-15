@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
+const mongoose = require('mongoose');
 
 // Get notifications for a user (customer or vendor)
 router.get('/:userId', async (req, res) => {
@@ -8,7 +9,19 @@ router.get('/:userId', async (req, res) => {
         const { userId } = req.params;
         const { limit = 20, unreadOnly = false, recipientType } = req.query;
 
-        let query = { recipientId: userId };
+        console.log('Notification fetch - userId:', userId, 'recipientType:', recipientType);
+
+        // Convert userId to ObjectId if it's a valid ObjectId string
+        let recipientId = userId;
+        try {
+            if (mongoose.Types.ObjectId.isValid(userId)) {
+                recipientId = new mongoose.Types.ObjectId(userId);
+            }
+        } catch (error) {
+            console.log('Invalid ObjectId format:', userId);
+        }
+
+        let query = { recipientId: recipientId };
         if (recipientType) {
             query.recipientType = recipientType;
         }
@@ -16,9 +29,13 @@ router.get('/:userId', async (req, res) => {
             query.isRead = false;
         }
 
+        console.log('Notification fetch - Query:', query);
+
         const notifications = await Notification.find(query)
             .sort({ createdAt: -1 })
             .limit(parseInt(limit));
+
+        console.log('Notification fetch - Found notifications:', notifications.length);
 
         res.json(notifications);
     } catch (error) {
@@ -72,12 +89,28 @@ router.get('/:userId/unread-count', async (req, res) => {
         const { userId } = req.params;
         const { recipientType } = req.query;
         
-        const countQuery = { recipientId: userId, isRead: false };
+        console.log('Notification unread-count - userId:', userId, 'recipientType:', recipientType);
+        
+        // Convert userId to ObjectId if it's a valid ObjectId string
+        let recipientId = userId;
+        try {
+            if (mongoose.Types.ObjectId.isValid(userId)) {
+                recipientId = new mongoose.Types.ObjectId(userId);
+            }
+        } catch (error) {
+            console.log('Invalid ObjectId format:', userId);
+        }
+        
+        const countQuery = { recipientId: recipientId, isRead: false };
         if (recipientType) {
             countQuery.recipientType = recipientType;
         }
 
+        console.log('Notification unread-count - Query:', countQuery);
+
         const count = await Notification.countDocuments(countQuery);
+        
+        console.log('Notification unread-count - Count:', count);
 
         res.json({ count });
     } catch (error) {

@@ -13,6 +13,9 @@ function AdminPortal() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('pending');
+    const [supportTickets, setSupportTickets] = useState([]);
+    const [supportLoading, setSupportLoading] = useState(false);
+    const [supportReply, setSupportReply] = useState('');
     
     // Modal state
     const [modalOpen, setModalOpen] = useState(false);
@@ -78,12 +81,13 @@ function AdminPortal() {
 
     const fetchAllData = async () => {
         try {
-            const [vendorsResponse, pendingVendorsResponse, customersResponse, servicesResponse, bookingsResponse] = await Promise.all([
+            const [vendorsResponse, pendingVendorsResponse, customersResponse, servicesResponse, bookingsResponse, supportResponse] = await Promise.all([
                 fetch('http://localhost:5001/api/admin/vendors'),
                 fetch('http://localhost:5001/api/admin/vendors/pending'),
                 fetch('http://localhost:5001/api/admin/customers'),
                 fetch('http://localhost:5001/api/admin/services'),
-                fetch('http://localhost:5001/api/admin/bookings')
+                fetch('http://localhost:5001/api/admin/bookings'),
+                fetch('http://localhost:5001/api/support/admin/list')
             ]);
 
             if (vendorsResponse.ok) {
@@ -110,8 +114,37 @@ function AdminPortal() {
                 const allBookings = await bookingsResponse.json();
                 setBookings(allBookings);
             }
+
+            if (supportResponse.ok) {
+                const data = await supportResponse.json();
+                setSupportTickets(Array.isArray(data.tickets) ? data.tickets : []);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
+        }
+    };
+
+    const replyToTicket = async (ticketId) => {
+        if (!supportReply.trim()) return;
+        setSupportLoading(true);
+        try {
+            const res = await fetch(`http://localhost:5001/api/support/${ticketId}/reply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ senderType: 'admin', message: supportReply })
+            });
+            if (res.ok) {
+                setSupportReply('');
+                await fetchAllData();
+                alert('Reply sent');
+            } else {
+                const err = await res.json();
+                alert(err.message || 'Failed to reply');
+            }
+        } catch (e) {
+            alert('Failed to reply');
+        } finally {
+            setSupportLoading(false);
         }
     };
 
@@ -244,6 +277,12 @@ function AdminPortal() {
                     onClick={() => setActiveTab('bookings')}
                 >
                     All Bookings ({bookings.length})
+                </button>
+                <button 
+                    className={activeTab === 'support' ? 'active' : ''} 
+                    onClick={() => setActiveTab('support')}
+                >
+                    Support ({supportTickets.length})
                 </button>
             </div>
 
@@ -478,6 +517,63 @@ function AdminPortal() {
                                                 <td>₹{booking.totalAmount}</td>
                                                 <td>
                                                     <span className="view-text">Click to view details</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'support' && (
+                    <div className="all-support">
+                        <h2>Help & Support Tickets</h2>
+                        {supportTickets.length === 0 ? (
+                            <p className="no-vendors">No tickets found.</p>
+                        ) : (
+                            <div className="vendors-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>User Type</th>
+                                            <th>Subject</th>
+                                            <th>Status</th>
+                                            <th>Created</th>
+                                            <th>Replies</th>
+                                            <th>Reply</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {supportTickets.map((t) => (
+                                            <tr key={t._id}>
+                                                <td>{t.type}</td>
+                                                <td>{t.userType}</td>
+                                                <td>{t.subject}</td>
+                                                <td>{t.status}</td>
+                                                <td>{new Date(t.createdAt).toLocaleString()}</td>
+                                                <td>{Array.isArray(t.replies) ? t.replies.length : 0}</td>
+                                                <td>
+                                                    <div style={{ display:'flex', gap:8 }}>
+                                                        <input 
+                                                            value={t._replyDraft || ''} 
+                                                            onChange={(e)=>{
+                                                                const draft = e.target.value;
+                                                                setSupportTickets(prev => prev.map(x => x._id===t._id ? { ...x, _replyDraft: draft } : x));
+                                                            }} 
+                                                            placeholder={t.status==='closed' ? 'Closed' : 'Type a reply'} 
+                                                            disabled={t.status==='closed'}
+                                                        />
+                                                        <button 
+                                                            onClick={()=>{
+                                                                setSupportReply(t._replyDraft || '');
+                                                                replyToTicket(t._id);
+                                                            }} 
+                                                            disabled={supportLoading || t.status==='closed'}
+                                                        >Send</button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

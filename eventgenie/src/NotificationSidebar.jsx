@@ -1,20 +1,40 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'react-toastify';
 import './NotificationSidebar.css';
 import API_BASE_URL from './config/api';
 
 const NotificationSidebar = ({ userId, userType, isOpen , onClose }) => {
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
+    const [customerNotifications, setCustomerNotifications] = useState([]);
+    const [vendorNotifications, setVendorNotifications] = useState([]);
+    const [customerUnreadCount, setCustomerUnreadCount] = useState(0);
+    const [vendorUnreadCount, setVendorUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
 
     const fetchNotifications = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/api/notifications/${userId}?recipientType=${userType}`);
-            if (response.ok) {
-                const data = await response.json();
-                setNotifications(data);
+            const customerUrl = `${API_BASE_URL}/api/notifications/${userId}?recipientType=customer`;
+            const vendorUrl = `${API_BASE_URL}/api/notifications/${userId}?recipientType=vendor`;
+            const [customerRes, vendorRes] = await Promise.all([
+                fetch(customerUrl),
+                fetch(vendorUrl)
+            ]);
+
+            if (customerRes.ok) {
+                const customerData = await customerRes.json();
+                setCustomerNotifications(Array.isArray(customerData) ? customerData : []);
+            } else {
+                const errorText = await customerRes.text();
+                console.error('NotificationSidebar fetchNotifications - Customer error response:', errorText);
+            }
+
+            if (vendorRes.ok) {
+                const vendorData = await vendorRes.json();
+                setVendorNotifications(Array.isArray(vendorData) ? vendorData : []);
+            } else {
+                const errorText = await vendorRes.text();
+                console.error('NotificationSidebar fetchNotifications - Vendor error response:', errorText);
             }
         } catch (error) {
             console.error('Error fetching notifications:', error);
@@ -39,29 +59,34 @@ const NotificationSidebar = ({ userId, userType, isOpen , onClose }) => {
 
     const fetchUnreadCount = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/notifications/${userId}/unread-count?recipientType=${userType}`);
-            if (response.ok) {
-                const data = await response.json();
-                setUnreadCount(data.count);
+            const [customerRes, vendorRes] = await Promise.all([
+                fetch(`${API_BASE_URL}/api/notifications/${userId}/unread-count?recipientType=customer`),
+                fetch(`${API_BASE_URL}/api/notifications/${userId}/unread-count?recipientType=vendor`)
+            ]);
+            if (customerRes.ok) {
+                const customerData = await customerRes.json();
+                setCustomerUnreadCount(customerData.count || 0);
+            }
+            if (vendorRes.ok) {
+                const vendorData = await vendorRes.json();
+                setVendorUnreadCount(vendorData.count || 0);
             }
         } catch (error) {
             console.error('Error fetching unread count:', error);
         }
     };
 
-    const markAsRead = async (notificationId) => {
+    const markAsRead = async (notificationId, recipientType) => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/notifications/${notificationId}/read`, {
                 method: 'PUT'
             });
             if (response.ok) {
-                setNotifications(prev => 
-                    prev.map(notif => 
-                        notif._id === notificationId 
-                            ? { ...notif, isRead: true }
-                            : notif
-                    )
-                );
+                if (recipientType === 'customer') {
+                    setCustomerNotifications(prev => prev.map(notif => notif._id === notificationId ? { ...notif, isRead: true } : notif));
+                } else if (recipientType === 'vendor') {
+                    setVendorNotifications(prev => prev.map(notif => notif._id === notificationId ? { ...notif, isRead: true } : notif));
+                }
                 fetchUnreadCount();
             }
         } catch (error) {
@@ -75,8 +100,10 @@ const NotificationSidebar = ({ userId, userType, isOpen , onClose }) => {
                 method: 'PUT'
             });
             if (response.ok) {
-                setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
-                setUnreadCount(0);
+                setCustomerNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+                setVendorNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+                setCustomerUnreadCount(0);
+                setVendorUnreadCount(0);
                 toast.success('All notifications marked as read');
             }
         } catch (error) {
@@ -140,15 +167,19 @@ const NotificationSidebar = ({ userId, userType, isOpen , onClose }) => {
         return () => clearInterval(interval);
     }, [userId]);
 
+    const activeRecipientType = userType === 'vendor' ? 'vendor' : 'customer';
+    const activeNotifications = activeRecipientType === 'vendor' ? vendorNotifications : customerNotifications;
+    const activeUnreadCount = activeRecipientType === 'vendor' ? vendorUnreadCount : customerUnreadCount;
+
     if (!isOpen) return null;
   
-    return (
+    return createPortal(
         <div className="notification-sidebar-overlay" onClick={onClose}>
             <div className="notification-sidebar" onClick={(e) => e.stopPropagation()}>
                 <div className="notification-header">
                     <h3>Notifications</h3>
                     <div className="notification-actions">
-                        {unreadCount > 0 && (
+                        {activeUnreadCount > 0 && (
                             <button 
                                 className="mark-all-read-btn"
                                 onClick={markAllAsRead}
@@ -163,22 +194,29 @@ const NotificationSidebar = ({ userId, userType, isOpen , onClose }) => {
                 <div className="notification-content">
                     {loading ? (
                         <div className="loading">Loading notifications...</div>
-                    ) : notifications.length === 0 ? (
+                    ) : activeNotifications.length === 0 ? (
                         <div className="no-notifications">
                             <p>No notifications yet</p>
                         </div>
                     ) : (
                         <div className="notification-list">
-                            {notifications.map((notification) => (
+                            {activeNotifications.map((notification) => (
                                 <div 
                                     key={notification._id} 
                                     className={`notification-item ${!notification.isRead ? 'unread' : ''} ${getNotificationColor(notification.type)}`}
                                     onClick={() => {
                                         if (!notification.isRead) {
-                                            markAsRead(notification._id);
+                                            markAsRead(notification._id, activeRecipientType);
                                         }
                                         if (notification.actionUrl) {
-                                            window.location.href = notification.actionUrl;
+                                            const url = notification.actionUrl;
+                                            if (activeRecipientType === 'vendor') {
+                                                // Ensure vendor dashboard context
+                                                window.location.href = url.includes('/vendor') ? url : `/vendor${url.startsWith('/') ? '' : '/'}${url}`;
+                                            } else {
+                                                // Ensure customer dashboard context
+                                                window.location.href = url.includes('/customer') ? url : `/customer${url.startsWith('/') ? '' : '/'}${url}`;
+                                            }
                                         }
                                     }}
                                 >
@@ -205,7 +243,8 @@ const NotificationSidebar = ({ userId, userType, isOpen , onClose }) => {
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

@@ -11,13 +11,28 @@ function Navbar({ isLoggedIn, isVendorLoggedIn, currentCustomer, currentVendor, 
     const fetchUnreadCount = async () => {
         const userId = currentCustomer?.id || currentVendor?.id;
         const recipientType = currentCustomer ? 'customer' : (currentVendor ? 'vendor' : null);
-        if (!userId || !recipientType) return;
+        
+        console.log('Navbar fetchUnreadCount - userId:', userId, 'recipientType:', recipientType);
+        
+        if (!userId || !recipientType) {
+            console.log('Navbar fetchUnreadCount - Missing userId or recipientType');
+            return;
+        }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/notifications/${userId}/unread-count?recipientType=${recipientType}`);
+            const url = `${API_BASE_URL}/api/notifications/${userId}/unread-count?recipientType=${recipientType}`;
+            console.log('Navbar fetchUnreadCount - Fetching from:', url);
+            
+            const response = await fetch(url);
+            console.log('Navbar fetchUnreadCount - Response status:', response.status);
+            
             if (response.ok) {
                 const data = await response.json();
+                console.log('Navbar fetchUnreadCount - Response data:', data);
                 setUnreadCount(data.count);
+            } else {
+                const errorText = await response.text();
+                console.error('Navbar fetchUnreadCount - Error response:', errorText);
             }
         } catch (error) {
             console.error('Error fetching unread count:', error);
@@ -70,24 +85,27 @@ function Navbar({ isLoggedIn, isVendorLoggedIn, currentCustomer, currentVendor, 
                     isVendorLoggedIn ? (
                         <>
                             <li>
-                                <a href="#" className={vendorTab === 'services' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('services'); }}>
+                                <a href="#" className={vendorTab === 'services' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('services'); navigate('/vendor-dashboard'); }}>
                                     <i className="fas fa-concierge-bell"></i> My Services
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className={vendorTab === 'bookings' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('bookings'); }}>
+                                <a href="#" className={vendorTab === 'bookings' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('bookings'); navigate('/vendor-dashboard'); }}>
                                     <i className="fas fa-calendar-check"></i> Bookings
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className={vendorTab === 'block' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('block'); }}>
+                                <a href="#" className={vendorTab === 'block' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('block'); navigate('/vendor-dashboard'); }}>
                                     <i className="fas fa-ban"></i> Block Services
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className={vendorTab === 'profile' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('profile'); }}>
+                                <a href="#" className={vendorTab === 'profile' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('profile'); navigate('/vendor-dashboard'); }}>
                                     <i className="fas fa-user"></i> Profile
                                 </a>
+                            </li>
+                            <li>
+                                <NavLink to="/support" className={({ isActive }) => isActive ? 'active' : ''}>Help & Support</NavLink>
                             </li>
                             <li>
                                 <button 
@@ -127,6 +145,7 @@ function Navbar({ isLoggedIn, isVendorLoggedIn, currentCustomer, currentVendor, 
                                 </NavLink>
                             </li>
                             <li><NavLink to="/profile" className={({ isActive }) => isActive ? 'active' : ''}>Profile</NavLink></li>
+                            <li><NavLink to="/support" className={({ isActive }) => isActive ? 'active' : ''}>Help & Support</NavLink></li>
                             <li>
                                 <button 
                                     className="notification-btn"
