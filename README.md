@@ -143,6 +143,41 @@ eventgenie/
 
 For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
+## 💬 Stage 1 — Chat System
+
+Backend Endpoints (base: http://localhost:5001)
+- POST `/api/chats/start` { customerId, vendorId, serviceCategory }
+- GET `/api/chats/customer/:customerId`
+- GET `/api/chats/vendor/:vendorId`
+- GET `/api/chats/admin/all`
+- POST `/api/chats/:chatId/send` { senderModel, senderId, receiverModel, receiverId, content }
+
+Frontend Usage
+- Customer: My Bookings → “Chat with Vendor”
+- Vendor: Vendor Dashboard → “Chats” tab
+- Admin: Admin Portal → “Chats” tab (read-only)
+
+Notes
+- New chats auto-start with: "Hello there! How can we assist you today?"
+- Help & Support is for ticketed issues; chat is for booking-specific messaging.
+
+## ⚡ Stage 2 — Real-Time Chat (Socket.io)
+
+Server
+- Added Socket.io in `server/server.js` with CORS enabled
+- Rooms per conversation: `joinConversation` with `{ chatId }`
+- `sendMessage` persists to MongoDB and emits `receiveMessage` to room
+
+Client
+- Uses `socket.io-client` to connect to backend base URL
+- CustomerChat: joins chat room after start/fetch; emits `sendMessage`, listens for `receiveMessage`
+- VendorChat: joins active chat room; listens and updates active and list; quick toast hook supported
+- AdminChatMonitor: read-only listener to all updates, reflects changes live
+
+Integration Notes
+- REST routes remain for initial start/fetch; WebSocket handles incremental updates
+- Message schema unchanged; all messages persisted via server events
+
 ## 🔧 Configuration
 
 ### Environment Variables

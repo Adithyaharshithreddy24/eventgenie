@@ -5,7 +5,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './style.css';
 import Navbar from './Navbar.jsx';
-import Footer from './Footer.Jsx';
+import Footer from './Footer.jsx';
 import Services from './Services.jsx';
 import Home from './Home.jsx';
 import BudgetCalculator from './BudgetCalculator.jsx';

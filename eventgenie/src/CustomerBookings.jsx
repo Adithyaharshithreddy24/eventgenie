@@ -2,12 +2,15 @@
 import { toast } from 'react-toastify';
 import UPIPayment from './UPIPayment';
 import './CustomerBookings.css';
+import CustomerChat from './CustomerChat.jsx';
+import { API_ENDPOINTS } from './config/api';
 
 const CustomerBookings = ({ customerId }) => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [showPayment, setShowPayment] = useState(false);
+    const [chatForBooking, setChatForBooking] = useState(null);
 
     useEffect(() => {
         if (customerId) {
@@ -18,7 +21,7 @@ const CustomerBookings = ({ customerId }) => {
     const fetchBookings = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`http://localhost:5001/api/bookings/customer/${customerId}`);
+            const response = await fetch(`${API_ENDPOINTS.CUSTOMERS.replace('/api/customers','')}/api/bookings/customer/${customerId}`);
             if (response.ok) {
                 const data = await response.json();
                 setBookings(data);
@@ -152,6 +155,22 @@ const CustomerBookings = ({ customerId }) => {
         );
     }
 
+    if (chatForBooking) {
+        const b = chatForBooking;
+        return (
+            <div className="customer-bookings">
+                <button className="btn secondary-btn" onClick={() => setChatForBooking(null)} style={{ marginBottom: 12 }}>
+                    ← Back to bookings
+                </button>
+                <CustomerChat
+                    customer={{ id: customerId }}
+                    vendor={{ id: b.vendorId, name: b.vendorName }}
+                    serviceCategory={b.serviceCategory || 'Catering'}
+                />
+            </div>
+        );
+    }
+
     return (
         <div className="customer-bookings">
             <h2>My Bookings</h2>
@@ -237,6 +256,13 @@ const CustomerBookings = ({ customerId }) => {
                                         <span>Payment Confirmed</span>
                                     </div>
                                 )}
+
+                                <button 
+                                    className="btn"
+                                    onClick={() => setChatForBooking(booking)}
+                                >
+                                    Chat with Vendor
+                                </button>
                                 
                                 {booking.status === 'completed' && (
                                     <div className="booking-completed">

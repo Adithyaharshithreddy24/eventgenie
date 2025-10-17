@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar.jsx';
 import './vendor-dashboard.css';
 import ServiceDetailsModal from './ServiceDetailsModal.jsx';
-import Calendar from 'react-multi-date-picker-calendar';
+import VendorChat from './VendorChat.jsx';
+// Calendar removed to resolve React 19 peer dependency conflict
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -395,6 +396,15 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
                     }}>
                         {error}
                     </div>
+                )}
+
+                {vendorTab === 'chats' && (
+                    <section className="dashboard-section active" style={{ marginLeft: '5%', marginRight: '5%' }}>
+                        <div className="section-header">
+                            <h2>Chats</h2>
+                        </div>
+                        <VendorChat vendor={vendor} />
+                    </section>
                 )}
 
                 {vendorTab === 'services' && (

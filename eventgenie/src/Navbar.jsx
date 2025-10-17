@@ -85,10 +85,15 @@ function Navbar({ isLoggedIn, isVendorLoggedIn, currentCustomer, currentVendor, 
                     isVendorLoggedIn ? (
                         <>
                             <li>
-                                <a href="#" className={vendorTab === 'services' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('services'); navigate('/vendor-dashboard'); }}>
+						<a href="#" className={vendorTab === 'services' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('services'); navigate('/vendor-dashboard'); }}>
                                     <i className="fas fa-concierge-bell"></i> My Services
                                 </a>
                             </li>
+					<li>
+						<a href="#" className={vendorTab === 'chats' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('chats'); navigate('/vendor-dashboard'); }}>
+							<i className="fas fa-comments"></i> Chats
+						</a>
+					</li>
                             <li>
                                 <a href="#" className={vendorTab === 'bookings' ? 'active' : ''} onClick={e => { e.preventDefault(); setVendorTab('bookings'); navigate('/vendor-dashboard'); }}>
                                     <i className="fas fa-calendar-check"></i> Bookings

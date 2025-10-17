@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './HelpSupport.css';
+import { API_ENDPOINTS } from './config/api';
 
 export default function HelpSupport({ user, userType }) {
     const [step, setStep] = useState(0); // 0:type, 1:subject, 2:message, 3:confirm
@@ -12,7 +13,7 @@ export default function HelpSupport({ user, userType }) {
     const loadMyTickets = async () => {
         if (!user?.id) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/support/user/${user.id}?userType=${userType}`);
+            const res = await fetch(`${API_ENDPOINTS.CUSTOMERS.replace('/api/customers','')}/api/support/user/${user.id}?userType=${userType}`);
             if (res.ok) {
                 const data = await res.json();
                 setTickets(data.tickets || []);
@@ -36,7 +37,7 @@ export default function HelpSupport({ user, userType }) {
         if (!mode || !subject.trim() || !message.trim()) return;
         setSubmitting(true);
         try {
-            const res = await fetch('http://localhost:5001/api/support/create', {
+            const res = await fetch(`${API_ENDPOINTS.CUSTOMERS.replace('/api/customers','')}/api/support/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -68,6 +69,11 @@ export default function HelpSupport({ user, userType }) {
             <div className="support-container">
                 <div className="support-header">Help & Support</div>
                 <div className="chat-window">
+                    <div className="chat-row bot">
+                        <div className="bubble">
+                            Note: Use Help & Support for tickets/issues. For direct messaging about a booking, use the Chat feature in your bookings.
+                        </div>
+                    </div>
                     {/* Bot: Ask type */}
                     <div className="chat-row bot">
                         <div className="bubble">

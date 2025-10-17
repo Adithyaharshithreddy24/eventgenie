@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminDetailModal from './AdminDetailModal';
+import AdminChatMonitor from './AdminChatMonitor.jsx';
 import './admin-portal.css';
 
 function AdminPortal() {
@@ -283,6 +284,12 @@ function AdminPortal() {
                     onClick={() => setActiveTab('support')}
                 >
                     Support ({supportTickets.length})
+                </button>
+                <button 
+                    className={activeTab === 'chats' ? 'active' : ''} 
+                    onClick={() => setActiveTab('chats')}
+                >
+                    Chats
                 </button>
             </div>
 
@@ -581,6 +588,13 @@ function AdminPortal() {
                                 </table>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {activeTab === 'chats' && (
+                    <div className="all-chats">
+                        <h2>Chat Monitor</h2>
+                        <AdminChatMonitor />
                     </div>
                 )}
             </div>

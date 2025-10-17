@@ -38,6 +38,16 @@ export const API_ENDPOINTS = {
   ADMIN_VENDOR_REJECT: (vendorId) => `${API_BASE_URL}/api/admin/vendors/${vendorId}/reject`,
   ADMIN_ENTITY_DETAILS: (entityType, entityId) => `${API_BASE_URL}/api/admin/${entityType}/${entityId}`,
   
+  // Chats
+  CHAT_START: `${API_BASE_URL}/api/chats/start`,
+  CHAT_SEND: (chatId) => `${API_BASE_URL}/api/chats/${chatId}/send`,
+  CHAT_LIST_FOR_CUSTOMER: (customerId) => `${API_BASE_URL}/api/chats/customer/${customerId}`,
+  CHAT_LIST_FOR_VENDOR: (vendorId) => `${API_BASE_URL}/api/chats/vendor/${vendorId}`,
+  CHAT_LIST_FOR_ADMIN: `${API_BASE_URL}/api/chats/admin/all`,
+  CHAT_ADMIN_START: `${API_BASE_URL}/api/chats/admin/start`,
+  CHAT_ADMIN_JOIN: (chatId) => `${API_BASE_URL}/api/chats/admin/${chatId}/join`,
+  CHAT_ADMIN_AUTO_MESSAGE: (chatId) => `${API_BASE_URL}/api/chats/admin/${chatId}/auto-message`,
+  
   // Service Management
   BULK_BLOCK_SERVICES: `${API_BASE_URL}/api/services/bulk-block`,
   BULK_UNBLOCK_SERVICES: `${API_BASE_URL}/api/services/bulk-unblock`,

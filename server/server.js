@@ -2,12 +2,16 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const http = require('http');
+const { Server } = require('socket.io');
+const Chat = require('./models/Chat');
 require('dotenv').config();
 
 // Import cron jobs
 require('./cronJobs');
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5001;
 
 // Middlewares
@@ -32,6 +36,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/support', require('./routes/supportRoutes'));
+app.use('/api/chats', require('./routes/chatRoutes'));
 
 // Root route
 app.get('/', (req, res) => {
@@ -39,6 +44,60 @@ app.get('/', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+// Socket.io setup
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST']
+    }
+});
+
+io.on('connection', (socket) => {
+    // Client joins a conversation room by chatId
+    socket.on('joinConversation', ({ chatId }) => {
+        if (!chatId) return;
+        socket.join(`chat:${chatId}`);
+    });
+
+    // Client sends a message; server saves to DB and emits to room
+    socket.on('sendMessage', async (payload, ack) => {
+        try {
+            const { chatId, senderModel, senderId, receiverModel, receiverId, content } = payload || {};
+            if (!chatId || !senderModel || !senderId || !receiverModel || !receiverId || !content?.trim()) {
+                if (ack) ack({ ok: false, message: 'Invalid payload' });
+                return;
+            }
+            const chat = await Chat.findById(chatId);
+            if (!chat) {
+                if (ack) ack({ ok: false, message: 'Chat not found' });
+                return;
+            }
+            // Guard participants
+            if (senderModel === 'Customer' && String(chat.customer) !== String(senderId)) return;
+            if (senderModel === 'Vendor' && String(chat.vendor) !== String(senderId)) return;
+            if (receiverModel === 'Customer' && chat.customer && String(chat.customer) !== String(receiverId)) return;
+            if (receiverModel === 'Vendor' && chat.vendor && String(chat.vendor) !== String(receiverId)) return;
+
+            const message = {
+                senderModel,
+                sender: senderId,
+                receiverModel,
+                receiver: receiverId,
+                content: content.trim(),
+                timestamp: new Date(),
+            };
+            chat.messages.push(message);
+            chat.lastMessageAt = new Date();
+            await chat.save();
+
+            io.to(`chat:${chatId}`).emit('receiveMessage', { chatId, message });
+            if (ack) ack({ ok: true });
+        } catch (err) {
+            if (ack) ack({ ok: false, message: err?.message || 'Failed' });
+        }
+    });
+});
+
+server.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
