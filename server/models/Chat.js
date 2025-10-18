@@ -9,7 +9,7 @@ const messageSchema = new mongoose.Schema({
     sender: {
         type: mongoose.Schema.Types.ObjectId,
         refPath: 'messages.senderModel',
-        required: function() { return this.senderModel !== 'System'; }
+        required: function () { return this.senderModel !== 'System'; }
     },
     receiverModel: {
         type: String,

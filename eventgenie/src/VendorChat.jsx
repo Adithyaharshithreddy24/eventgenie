@@ -17,11 +17,11 @@ export default function VendorChat({ vendor }) {
             if (!active && data.chats?.length) setActive(data.chats[0]);
             // connect if not connected
             if (!socketRef.current) {
-                socketRef.current = io(API_ENDPOINTS.CUSTOMERS.replace('/api/customers',''));
+                socketRef.current = io(API_ENDPOINTS.CUSTOMERS.replace('/api/customers', ''));
                 socketRef.current.on('receiveMessage', ({ chatId, message }) => {
-                    setChats(prev => prev.map(c => c._id === chatId ? { ...c, messages: [...(c.messages||[]), message], lastMessageAt: message.timestamp } : c));
-                    setActive(prev => prev && prev._id === chatId ? { ...prev, messages: [...(prev.messages||[]), message], lastMessageAt: message.timestamp } : prev);
-                    try { if (window?.toast) window.toast('New message'); } catch {}
+                    setChats(prev => prev.map(c => c._id === chatId ? { ...c, messages: [...(c.messages || []), message], lastMessageAt: message.timestamp } : c));
+                    setActive(prev => prev && prev._id === chatId ? { ...prev, messages: [...(prev.messages || []), message], lastMessageAt: message.timestamp } : prev);
+                    try { if (window?.toast) window.toast('New message'); } catch { }
                 });
             }
             // auto join active
@@ -92,7 +92,7 @@ export default function VendorChat({ vendor }) {
                             ))}
                         </div>
                         <div className="chat-input-row">
-                            <input value={message} onChange={(e)=>setMessage(e.target.value)} placeholder="Type a message" />
+                            <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message" />
                             <button className="primary-btn" onClick={send} disabled={!message.trim()}>Send</button>
                         </div>
                     </>

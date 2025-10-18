@@ -1542,10 +1542,10 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
                                                         marginBottom: '16px',
                                                         border: `1px solid ${booking.status === 'advance_paid' ? '#4caf50' : '#f44336'}`
                                                     }}>
-                                                        <h5 style={{ 
-                                                            margin: '0 0 12px 0', 
-                                                            color: booking.status === 'advance_paid' ? '#2e7d32' : '#c62828', 
-                                                            fontSize: '1rem' 
+                                                        <h5 style={{
+                                                            margin: '0 0 12px 0',
+                                                            color: booking.status === 'advance_paid' ? '#2e7d32' : '#c62828',
+                                                            fontSize: '1rem'
                                                         }}>
                                                             <i className={`fas fa-${booking.status === 'advance_paid' ? 'check-circle' : 'times-circle'}`} style={{ marginRight: '8px' }}></i>
                                                             Payment Verification {booking.status === 'advance_paid' ? 'Successful' : 'Failed'}
@@ -1666,31 +1666,31 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
                                                             fontSize: '0.9rem',
                                                             fontWeight: '500',
                                                             borderRadius: '6px',
-                                                            backgroundColor: booking.status === 'approved' ? '#e8f5e8' : 
-                                                                         booking.status === 'rejected' ? '#ffebee' :
-                                                                         booking.status === 'payment_pending_verification' ? '#fff3cd' :
-                                                                         booking.status === 'advance_paid' ? '#e3f2fd' :
-                                                                         booking.status === 'payment_failed' ? '#ffebee' :
-                                                                         booking.status === 'completed' ? '#f3e5f5' : '#f5f5f5',
+                                                            backgroundColor: booking.status === 'approved' ? '#e8f5e8' :
+                                                                booking.status === 'rejected' ? '#ffebee' :
+                                                                    booking.status === 'payment_pending_verification' ? '#fff3cd' :
+                                                                        booking.status === 'advance_paid' ? '#e3f2fd' :
+                                                                            booking.status === 'payment_failed' ? '#ffebee' :
+                                                                                booking.status === 'completed' ? '#f3e5f5' : '#f5f5f5',
                                                             color: booking.status === 'approved' ? '#2e7d32' :
-                                                                  booking.status === 'rejected' ? '#c62828' :
-                                                                  booking.status === 'payment_pending_verification' ? '#856404' :
-                                                                  booking.status === 'advance_paid' ? '#1565c0' :
-                                                                  booking.status === 'payment_failed' ? '#c62828' :
-                                                                  booking.status === 'completed' ? '#7b1fa2' : '#666',
+                                                                booking.status === 'rejected' ? '#c62828' :
+                                                                    booking.status === 'payment_pending_verification' ? '#856404' :
+                                                                        booking.status === 'advance_paid' ? '#1565c0' :
+                                                                            booking.status === 'payment_failed' ? '#c62828' :
+                                                                                booking.status === 'completed' ? '#7b1fa2' : '#666',
                                                             border: `1px solid ${booking.status === 'approved' ? '#4caf50' :
-                                                                      booking.status === 'rejected' ? '#f44336' :
-                                                                      booking.status === 'payment_pending_verification' ? '#ffc107' :
-                                                                      booking.status === 'advance_paid' ? '#2196f3' :
-                                                                      booking.status === 'payment_failed' ? '#f44336' :
-                                                                      booking.status === 'completed' ? '#9c27b0' : '#ddd'}`
+                                                                booking.status === 'rejected' ? '#f44336' :
+                                                                    booking.status === 'payment_pending_verification' ? '#ffc107' :
+                                                                        booking.status === 'advance_paid' ? '#2196f3' :
+                                                                            booking.status === 'payment_failed' ? '#f44336' :
+                                                                                booking.status === 'completed' ? '#9c27b0' : '#ddd'}`
                                                         }}>
                                                             <i className={`fas fa-${booking.status === 'approved' ? 'check' :
-                                                                          booking.status === 'rejected' ? 'times' :
-                                                                          booking.status === 'payment_pending_verification' ? 'clock' :
-                                                                          booking.status === 'advance_paid' ? 'credit-card' :
-                                                                          booking.status === 'payment_failed' ? 'times-circle' :
-                                                                          booking.status === 'completed' ? 'star' : 'info'}`} 
+                                                                booking.status === 'rejected' ? 'times' :
+                                                                    booking.status === 'payment_pending_verification' ? 'clock' :
+                                                                        booking.status === 'advance_paid' ? 'credit-card' :
+                                                                            booking.status === 'payment_failed' ? 'times-circle' :
+                                                                                booking.status === 'completed' ? 'star' : 'info'}`}
                                                                 style={{ marginRight: '6px' }}></i>
                                                             {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
                                                         </div>
@@ -1809,8 +1809,8 @@ function BlockServicesSection({ vendor, myServices, fetchVendorServices }) {
             if (s.blockedDates && s.blockedDates.includes(dateKey)) {
                 // If date is in blockedDates, it means payment was verified
                 // Find the corresponding booking for this service and date
-            if (s.bookings) {
-                s.bookings.forEach(b => {
+                if (s.bookings) {
+                    s.bookings.forEach(b => {
                         if (b.bookedForDate === dateKey && b.status === 'confirmed') {
                             confirmedBookings.push({ service: s, booking: b });
                         }
@@ -1920,7 +1920,7 @@ function BlockServicesSection({ vendor, myServices, fetchVendorServices }) {
                                 const pendingBookings = getPendingBookingsForDate(key);
                                 const vendorBlocked = getBlockedServicesForDate(key);
                                 let dayClass = 'calendar-day';
-                                
+
                                 // Show green for confirmed bookings (payment verified)
                                 if (confirmedBookings.length > 0) {
                                     dayClass += ' calendar-day-booked'; // green
@@ -1931,7 +1931,7 @@ function BlockServicesSection({ vendor, myServices, fetchVendorServices }) {
                                     // Red for pending requests as well
                                     dayClass += ' calendar-day-blocked';
                                 }
-                                
+
                                 if (isSelected(dateObj)) dayClass += ' selected';
                                 if (dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate())) dayClass += ' calendar-day-disabled';
                                 return (

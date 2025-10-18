@@ -143,23 +143,23 @@ router.post('/admin/:chatId/join', async (req, res) => {
         console.log('🔧 ADMIN JOIN - Request received:', req.params, req.body);
         const { chatId } = req.params;
         const { adminId } = req.body;
-        
+
         if (!adminId) {
             console.log('❌ ADMIN JOIN - Missing adminId');
             return res.status(400).json({ message: 'adminId required' });
         }
-        
+
         console.log('🔍 ADMIN JOIN - Looking for chat:', chatId);
         const chat = await Chat.findById(chatId);
         if (!chat) {
             console.log('❌ ADMIN JOIN - Chat not found:', chatId);
             return res.status(404).json({ message: 'Chat not found' });
         }
-        
+
         console.log('📋 ADMIN JOIN - Current participants:', chat.participants);
         const hasAdmin = (chat.participants || []).some(p => p.role === 'Admin' && String(p.user) === String(adminId));
         console.log('👤 ADMIN JOIN - Has admin?', hasAdmin);
-        
+
         if (!hasAdmin) {
             chat.participants = chat.participants || [];
             chat.participants.push({ role: 'Admin', model: 'Admin', user: adminId });
@@ -168,7 +168,7 @@ router.post('/admin/:chatId/join', async (req, res) => {
         } else {
             console.log('ℹ️ ADMIN JOIN - Admin already participant');
         }
-        
+
         console.log('✅ ADMIN JOIN - Success, returning chat');
         res.json({ chat });
     } catch (err) {
@@ -183,48 +183,48 @@ router.post('/admin/:chatId/auto-message', async (req, res) => {
         console.log('🔧 ADMIN AUTO-MESSAGE - Request received:', req.params, req.body);
         const { chatId } = req.params;
         const { adminId, templateKey } = req.body;
-        
+
         if (!adminId) {
             console.log('❌ ADMIN AUTO-MESSAGE - Missing adminId');
             return res.status(400).json({ message: 'adminId required' });
         }
-        
+
         const templates = {
             apology: 'We apologize for the inconvenience. Our team is looking into your issue.',
             welcome: 'Hello! Admin has joined this chat to assist further.',
         };
         const content = templates[templateKey] || templates.apology;
         console.log('💬 ADMIN AUTO-MESSAGE - Content:', content);
-        
+
         console.log('🔍 ADMIN AUTO-MESSAGE - Looking for chat:', chatId);
         const chat = await Chat.findById(chatId);
         if (!chat) {
             console.log('❌ ADMIN AUTO-MESSAGE - Chat not found:', chatId);
             return res.status(404).json({ message: 'Chat not found' });
         }
-        
+
         console.log('📋 ADMIN AUTO-MESSAGE - Current participants:', chat.participants);
         chat.participants = chat.participants || [];
         if (!chat.participants.some(p => p.role === 'Admin' && String(p.user) === String(adminId))) {
             chat.participants.push({ role: 'Admin', model: 'Admin', user: adminId });
             console.log('✅ ADMIN AUTO-MESSAGE - Added admin to participants');
         }
-        
-        const message = { 
-            senderModel: 'Admin', 
-            sender: adminId, 
-            receiverModel: 'Customer', 
-            receiver: chat.customer || adminId, 
-            content, 
-            timestamp: new Date() 
+
+        const message = {
+            senderModel: 'Admin',
+            sender: adminId,
+            receiverModel: 'Customer',
+            receiver: chat.customer || adminId,
+            content,
+            timestamp: new Date()
         };
         console.log('💬 ADMIN AUTO-MESSAGE - Adding message:', message);
-        
+
         chat.messages.push(message);
         chat.lastMessageAt = new Date();
         await chat.save();
         console.log('✅ ADMIN AUTO-MESSAGE - Message saved successfully');
-        
+
         res.json({ chat });
     } catch (err) {
         console.error('❌ ADMIN AUTO-MESSAGE - Error:', err);

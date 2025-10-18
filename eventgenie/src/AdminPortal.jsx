@@ -17,7 +17,7 @@ function AdminPortal() {
     const [supportTickets, setSupportTickets] = useState([]);
     const [supportLoading, setSupportLoading] = useState(false);
     const [supportReply, setSupportReply] = useState('');
-    
+
     // Modal state
     const [modalOpen, setModalOpen] = useState(false);
     const [modalEntityType, setModalEntityType] = useState('');
@@ -42,7 +42,7 @@ function AdminPortal() {
     const login = async (username, password) => {
         setLoading(true);
         setError('');
-        
+
         try {
             const response = await fetch('http://localhost:5001/api/admin/login', {
                 method: 'POST',
@@ -216,11 +216,12 @@ function AdminPortal() {
 
     if (!isLoggedIn) {
         return (
-           console.log()
-        );}
+            console.log()
+        );
+    }
     return (
         <div className="admin-portal-container">
-            
+
 
             {/* Dashboard Summary */}
             <div className="dashboard-summary">
@@ -249,44 +250,44 @@ function AdminPortal() {
             </div>
 
             <div className="admin-tabs">
-                <button 
-                    className={activeTab === 'pending' ? 'active' : ''} 
+                <button
+                    className={activeTab === 'pending' ? 'active' : ''}
                     onClick={() => setActiveTab('pending')}
                 >
                     Pending Approvals ({pendingVendors.length})
                 </button>
-                <button 
-                    className={activeTab === 'vendors' ? 'active' : ''} 
+                <button
+                    className={activeTab === 'vendors' ? 'active' : ''}
                     onClick={() => setActiveTab('vendors')}
                 >
                     All Vendors ({vendors.length})
                 </button>
-                <button 
-                    className={activeTab === 'customers' ? 'active' : ''} 
+                <button
+                    className={activeTab === 'customers' ? 'active' : ''}
                     onClick={() => setActiveTab('customers')}
                 >
                     All Customers ({customers.length})
                 </button>
-                <button 
-                    className={activeTab === 'services' ? 'active' : ''} 
+                <button
+                    className={activeTab === 'services' ? 'active' : ''}
                     onClick={() => setActiveTab('services')}
                 >
                     All Services ({services.length})
                 </button>
-                <button 
-                    className={activeTab === 'bookings' ? 'active' : ''} 
+                <button
+                    className={activeTab === 'bookings' ? 'active' : ''}
                     onClick={() => setActiveTab('bookings')}
                 >
                     All Bookings ({bookings.length})
                 </button>
-                <button 
-                    className={activeTab === 'support' ? 'active' : ''} 
+                <button
+                    className={activeTab === 'support' ? 'active' : ''}
                     onClick={() => setActiveTab('support')}
                 >
                     Support ({supportTickets.length})
                 </button>
-                <button 
-                    className={activeTab === 'chats' ? 'active' : ''} 
+                <button
+                    className={activeTab === 'chats' ? 'active' : ''}
                     onClick={() => setActiveTab('chats')}
                 >
                     Chats
@@ -319,13 +320,13 @@ function AdminPortal() {
                                             <p><strong>Registered:</strong> {new Date(vendor.createdAt).toLocaleDateString()}</p>
                                         </div>
                                         <div className="vendor-actions">
-                                            <button 
+                                            <button
                                                 onClick={() => approveVendor(vendor._id)}
                                                 className="approve-btn"
                                             >
                                                 ✅ Approve
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => rejectVendor(vendor._id)}
                                                 className="reject-btn"
                                             >
@@ -376,13 +377,13 @@ function AdminPortal() {
                                                 <td>
                                                     {vendor.status === 'pending' && (
                                                         <div className="action-buttons">
-                                                            <button 
+                                                            <button
                                                                 onClick={(e) => { e.stopPropagation(); approveVendor(vendor._id); }}
                                                                 className="approve-btn small"
                                                             >
                                                                 ✅
                                                             </button>
-                                                            <button 
+                                                            <button
                                                                 onClick={(e) => { e.stopPropagation(); rejectVendor(vendor._id); }}
                                                                 className="reject-btn small"
                                                             >
@@ -563,22 +564,22 @@ function AdminPortal() {
                                                 <td>{new Date(t.createdAt).toLocaleString()}</td>
                                                 <td>{Array.isArray(t.replies) ? t.replies.length : 0}</td>
                                                 <td>
-                                                    <div style={{ display:'flex', gap:8 }}>
-                                                        <input 
-                                                            value={t._replyDraft || ''} 
-                                                            onChange={(e)=>{
+                                                    <div style={{ display: 'flex', gap: 8 }}>
+                                                        <input
+                                                            value={t._replyDraft || ''}
+                                                            onChange={(e) => {
                                                                 const draft = e.target.value;
-                                                                setSupportTickets(prev => prev.map(x => x._id===t._id ? { ...x, _replyDraft: draft } : x));
-                                                            }} 
-                                                            placeholder={t.status==='closed' ? 'Closed' : 'Type a reply'} 
-                                                            disabled={t.status==='closed'}
+                                                                setSupportTickets(prev => prev.map(x => x._id === t._id ? { ...x, _replyDraft: draft } : x));
+                                                            }}
+                                                            placeholder={t.status === 'closed' ? 'Closed' : 'Type a reply'}
+                                                            disabled={t.status === 'closed'}
                                                         />
-                                                        <button 
-                                                            onClick={()=>{
+                                                        <button
+                                                            onClick={() => {
                                                                 setSupportReply(t._replyDraft || '');
                                                                 replyToTicket(t._id);
-                                                            }} 
-                                                            disabled={supportLoading || t.status==='closed'}
+                                                            }}
+                                                            disabled={supportLoading || t.status === 'closed'}
                                                         >Send</button>
                                                     </div>
                                                 </td>
@@ -592,7 +593,9 @@ function AdminPortal() {
                 )}
 
                 {activeTab === 'chats' && (
-                    <div className="all-chats">
+                    <div className="all-chats" style={{
+                        height: "1000px"
+                    }}>
                         <h2>Chat Monitor</h2>
                         <AdminChatMonitor />
                     </div>

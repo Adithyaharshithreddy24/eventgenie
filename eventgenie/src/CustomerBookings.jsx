@@ -1,4 +1,4 @@
- import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import UPIPayment from './UPIPayment';
 import './CustomerBookings.css';
@@ -21,7 +21,7 @@ const CustomerBookings = ({ customerId }) => {
     const fetchBookings = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_ENDPOINTS.CUSTOMERS.replace('/api/customers','')}/api/bookings/customer/${customerId}`);
+            const response = await fetch(`${API_ENDPOINTS.CUSTOMERS.replace('/api/customers', '')}/api/bookings/customer/${customerId}`);
             if (response.ok) {
                 const data = await response.json();
                 setBookings(data);
@@ -42,8 +42,8 @@ const CustomerBookings = ({ customerId }) => {
     };
 
     const handlePaymentSuccess = (updatedBooking) => {
-        setBookings(prev => 
-            prev.map(booking => 
+        setBookings(prev =>
+            prev.map(booking =>
                 booking._id === updatedBooking._id ? updatedBooking : booking
             )
         );
@@ -118,16 +118,16 @@ const CustomerBookings = ({ customerId }) => {
 
     const getTimeRemaining = (expiryDate) => {
         if (!expiryDate) return null;
-        
+
         const now = new Date();
         const expiry = new Date(expiryDate);
         const diff = expiry - now;
-        
+
         if (diff <= 0) return 'Expired';
-        
+
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        
+
         return `${hours}h ${minutes}m remaining`;
     };
 
@@ -158,23 +158,153 @@ const CustomerBookings = ({ customerId }) => {
     if (chatForBooking) {
         const b = chatForBooking;
         return (
-            <div className="customer-bookings">
-                <button className="btn secondary-btn" onClick={() => setChatForBooking(null)} style={{ marginBottom: 12 }}>
-                    ← Back to bookings
-                </button>
-                <CustomerChat
-                    customer={{ id: customerId }}
-                    vendor={{ id: b.vendorId, name: b.vendorName }}
-                    serviceCategory={b.serviceCategory || 'Catering'}
-                />
-            </div>
+            <>
+
+                <div className="customer-bookings">
+                    <h2>My Bookings</h2>
+                    {bookings.length === 0 ? (
+                        <div className="no-bookings">
+                            <p>You haven't made any bookings yet.</p>
+                            <a href="/services" className="btn-primary">Browse Services</a>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="customer-bookings-chat" style={{ float: 'right', position: 'fixed', top: '90px', right: '20px', borderRadius: '8px', backgroundColor: 'transparent', padding: '10px' }}>
+                                <div className="customer-bookings-chat" style={{ float: 'right', position: 'fixed', top: '80px', right: '20px', borderRadius: '8px', backgroundColor: 'transparent', padding: '10px' }}>
+                                    <CustomerChat
+                                        customer={{ id: customerId }}
+                                        vendor={{ id: b.vendorId, name: b.vendorName }}
+                                        serviceCategory={b.serviceCategory || 'Catering'}
+                                        onClose={() => setChatForBooking(null)}
+                                    />
+                                </div>
+
+                            </div>
+                            <div className="bookings-grid">
+
+                                {bookings.map((booking) => (
+                                    <div key={booking._id} className="booking-card">
+                                        <div className="booking-header">
+                                            <h3>{booking.serviceName}</h3>
+                                            <span
+                                                className="status-badge"
+                                                style={{ backgroundColor: getStatusColor(booking.status) }}
+                                            >
+                                                {getStatusText(booking.status)}
+                                            </span>
+                                        </div>
+
+                                        <div className="booking-details">
+                                            <div className="detail-row">
+                                                <span className="label">Event Date:</span>
+                                                <span className="value">{booking.eventDate}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="label">Vendor:</span>
+                                                <span className="value">{booking.vendorName}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="label">Total Amount:</span>
+                                                <span className="value">{formatCurrency(booking.totalAmount)}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="label">Advance Amount:</span>
+                                                <span className="value">{formatCurrency(booking.advanceAmount)}</span>
+                                            </div>
+
+                                            {booking.advancePaymentExpiry && booking.status === 'approved' && (
+                                                <div className="detail-row">
+                                                    <span className="label">Payment Deadline:</span>
+                                                    <span className="value time-remaining">
+                                                        {getTimeRemaining(booking.advancePaymentExpiry)}
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            {booking.notes && (
+                                                <div className="detail-row">
+                                                    <span className="label">Notes:</span>
+                                                    <span className="value">{booking.notes}</span>
+                                                </div>
+                                            )}
+
+                                            {booking.vendorNotes && (
+                                                <div className="detail-row">
+                                                    <span className="label">Vendor Notes:</span>
+                                                    <span className="value">{booking.vendorNotes}</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="booking-actions">
+                                            {booking.status === 'approved' && !booking.advanceAmountPaid && (
+                                                <button
+                                                    className="btn-pay"
+                                                    onClick={() => handlePaymentClick(booking)}
+                                                    disabled={getTimeRemaining(booking.advancePaymentExpiry) === 'Expired'}
+                                                >
+                                                    {getTimeRemaining(booking.advancePaymentExpiry) === 'Expired'
+                                                        ? 'Payment Expired'
+                                                        : 'Pay Advance'
+                                                    }
+                                                </button>
+                                            )}
+
+                                            {booking.status === 'advance_paid' && (
+                                                <div className="payment-confirmed">
+                                                    <i className="fas fa-check-circle"></i>
+                                                    <span>Payment Confirmed</span>
+                                                </div>
+                                            )}
+
+                                            <button
+                                                className="btn"
+                                                onClick={() => setChatForBooking(booking)}
+                                            >
+                                                Chat with Vendor
+                                            </button>
+
+                                            {booking.status === 'completed' && (
+                                                <div className="booking-completed">
+                                                    <i className="fas fa-star"></i>
+                                                    <span>Service Completed</span>
+                                                </div>
+                                            )}
+
+                                            {booking.status === 'rejected' && (
+                                                <div className="booking-rejected">
+                                                    <i className="fas fa-times-circle"></i>
+                                                    <span>Booking Rejected</span>
+                                                </div>
+                                            )}
+
+                                            {booking.status === 'payment_failed' && (
+                                                <div className="payment-failed">
+                                                    <i className="fas fa-exclamation-triangle"></i>
+                                                    <span>Payment Verification Failed</span>
+                                                    <button
+                                                        className="btn-retry"
+                                                        onClick={() => handlePaymentClick(booking)}
+                                                    >
+                                                        Retry Payment
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+            </>
         );
     }
 
     return (
         <div className="customer-bookings">
             <h2>My Bookings</h2>
-            
+
             {bookings.length === 0 ? (
                 <div className="no-bookings">
                     <p>You haven't made any bookings yet.</p>
@@ -186,14 +316,14 @@ const CustomerBookings = ({ customerId }) => {
                         <div key={booking._id} className="booking-card">
                             <div className="booking-header">
                                 <h3>{booking.serviceName}</h3>
-                                <span 
+                                <span
                                     className="status-badge"
                                     style={{ backgroundColor: getStatusColor(booking.status) }}
                                 >
                                     {getStatusText(booking.status)}
                                 </span>
                             </div>
-                            
+
                             <div className="booking-details">
                                 <div className="detail-row">
                                     <span className="label">Event Date:</span>
@@ -211,7 +341,7 @@ const CustomerBookings = ({ customerId }) => {
                                     <span className="label">Advance Amount:</span>
                                     <span className="value">{formatCurrency(booking.advanceAmount)}</span>
                                 </div>
-                                
+
                                 {booking.advancePaymentExpiry && booking.status === 'approved' && (
                                     <div className="detail-row">
                                         <span className="label">Payment Deadline:</span>
@@ -220,14 +350,14 @@ const CustomerBookings = ({ customerId }) => {
                                         </span>
                                     </div>
                                 )}
-                                
+
                                 {booking.notes && (
                                     <div className="detail-row">
                                         <span className="label">Notes:</span>
                                         <span className="value">{booking.notes}</span>
                                     </div>
                                 )}
-                                
+
                                 {booking.vendorNotes && (
                                     <div className="detail-row">
                                         <span className="label">Vendor Notes:</span>
@@ -235,21 +365,21 @@ const CustomerBookings = ({ customerId }) => {
                                     </div>
                                 )}
                             </div>
-                            
+
                             <div className="booking-actions">
                                 {booking.status === 'approved' && !booking.advanceAmountPaid && (
-                                    <button 
+                                    <button
                                         className="btn-pay"
                                         onClick={() => handlePaymentClick(booking)}
                                         disabled={getTimeRemaining(booking.advancePaymentExpiry) === 'Expired'}
                                     >
-                                        {getTimeRemaining(booking.advancePaymentExpiry) === 'Expired' 
-                                            ? 'Payment Expired' 
+                                        {getTimeRemaining(booking.advancePaymentExpiry) === 'Expired'
+                                            ? 'Payment Expired'
                                             : 'Pay Advance'
                                         }
                                     </button>
                                 )}
-                                
+
                                 {booking.status === 'advance_paid' && (
                                     <div className="payment-confirmed">
                                         <i className="fas fa-check-circle"></i>
@@ -257,32 +387,32 @@ const CustomerBookings = ({ customerId }) => {
                                     </div>
                                 )}
 
-                                <button 
+                                <button
                                     className="btn"
                                     onClick={() => setChatForBooking(booking)}
                                 >
                                     Chat with Vendor
                                 </button>
-                                
+
                                 {booking.status === 'completed' && (
                                     <div className="booking-completed">
                                         <i className="fas fa-star"></i>
                                         <span>Service Completed</span>
                                     </div>
                                 )}
-                                
+
                                 {booking.status === 'rejected' && (
                                     <div className="booking-rejected">
                                         <i className="fas fa-times-circle"></i>
                                         <span>Booking Rejected</span>
                                     </div>
                                 )}
-                                
+
                                 {booking.status === 'payment_failed' && (
                                     <div className="payment-failed">
                                         <i className="fas fa-exclamation-triangle"></i>
                                         <span>Payment Verification Failed</span>
-                                        <button 
+                                        <button
                                             className="btn-retry"
                                             onClick={() => handlePaymentClick(booking)}
                                         >
