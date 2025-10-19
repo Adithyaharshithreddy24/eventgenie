@@ -621,15 +621,15 @@ function Profile({ customer, logout, toggleService }) {
                             <div className="bookings-list">
                                 {(() => {
                                     const groupedBookings = groupBookingsByDate(detailedBookings);
-                                    
+
                                     // Separate pending and (confirmed+cancelled) bookings
                                     const pendingBookings = [];
                                     const confirmedOrCancelledBookings = [];
-                                    
+
                                     Object.entries(groupedBookings).forEach(([date, bookings]) => {
                                         const pendingForDate = bookings.filter(booking => booking.status === 'pending');
                                         const confirmedOrCancelledForDate = bookings.filter(booking => booking.status === 'confirmed' || booking.status === 'cancelled');
-                                        
+
                                         if (pendingForDate.length > 0) {
                                             pendingBookings.push({ date, bookings: pendingForDate });
                                         }
@@ -1154,7 +1154,7 @@ function Profile({ customer, logout, toggleService }) {
                                                                                                         showPopup(errorData.message || 'Failed to cancel booking', 'error');
                                                                                                     }
                                                                                                 } catch (error) {
-                                                                                                console.log("");
+                                                                                                    console.log("");
                                                                                                 } finally {
                                                                                                     setLoading(false);
                                                                                                 }

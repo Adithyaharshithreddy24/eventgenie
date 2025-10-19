@@ -141,7 +141,7 @@ function App() {
         about: user.about,
         categories: user.services || [],
         profilePhoto: user.photo || '',
-                 upiId: user.upiId || '' // Optional field
+        upiId: user.upiId || '' // Optional field
       };
 
       console.log('Prepared user data:', userData);
@@ -230,12 +230,12 @@ function App() {
       });
 
       const results = await Promise.allSettled(bookingPromises);
-      
+
       const successful = results.filter(result => result.status === 'fulfilled');
       const failed = results.filter(result => result.status === 'rejected');
 
       if (successful.length > 0) {
-        const successMessage = successful.length === 1 
+        const successMessage = successful.length === 1
           ? `Successfully created booking request for ${successful[0].value.booking.serviceName}!`
           : `Successfully created ${successful.length} booking requests!`;
         alert(successMessage);
@@ -330,18 +330,18 @@ function App() {
 
   return (
     <>
-      <Navbar 
-        isLoggedIn={isLoggedIn} 
-        isVendorLoggedIn={isVendorLoggedIn} 
-        currentCustomer={currentCustomer} 
-        currentVendor={currentVendor} 
-        logout={logout} 
-        vendorTab={vendorTab} 
-        setVendorTab={setVendorTab} 
+      <Navbar
+        isLoggedIn={isLoggedIn}
+        isVendorLoggedIn={isVendorLoggedIn}
+        currentCustomer={currentCustomer}
+        currentVendor={currentVendor}
+        logout={logout}
+        vendorTab={vendorTab}
+        setVendorTab={setVendorTab}
         selectedServices={selectedServices}
         onNotificationClick={handleNotificationClick}
       />
-      
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/services" element={<Services selectedServices={selectedServices} toggleService={toggleService} />} />
@@ -353,9 +353,17 @@ function App() {
         <Route path="/admin" element={<AdminPortal />} />
         <Route path="/support" element={<HelpSupport user={currentVendor || currentCustomer} userType={currentVendor ? 'vendor' : 'customer'} />} />
       </Routes>
-      
-      <Footer />
-      
+
+      <Footer isLoggedIn={isLoggedIn}
+        isVendorLoggedIn={isVendorLoggedIn}
+        currentCustomer={currentCustomer}
+        currentVendor={currentVendor}
+        logout={logout}
+        vendorTab={vendorTab}
+        setVendorTab={setVendorTab}
+        selectedServices={selectedServices}
+        onNotificationClick={handleNotificationClick} />
+
       {/* Notification Sidebar */}
       {(isLoggedIn || isVendorLoggedIn) && (
         <NotificationSidebar
@@ -365,7 +373,7 @@ function App() {
           onClose={handleNotificationClose}
         />
       )}
-      
+
       {/* Toast Container */}
       <ToastContainer
         position="top-right"

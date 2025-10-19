@@ -46,7 +46,8 @@ const chatSchema = new mongoose.Schema({
     participants: [{
         role: { type: String, enum: ['Customer', 'Vendor', 'Admin'], required: true },
         model: { type: String, enum: ['Customer', 'Vendor', 'Admin'], required: true },
-        user: { type: mongoose.Schema.Types.ObjectId, required: true, refPath: 'participants.model' }
+        user: { type: mongoose.Schema.Types.ObjectId, required: true, refPath: 'participants.model' },
+        name: { type: String, required: true }
     }],
     serviceCategory: {
         type: String,
@@ -68,5 +69,3 @@ chatSchema.index({ customer: 1, lastMessageAt: -1 });
 chatSchema.index({ vendor: 1, lastMessageAt: -1 });
 
 module.exports = mongoose.model('Chat', chatSchema);
-
-

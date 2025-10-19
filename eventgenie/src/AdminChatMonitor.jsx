@@ -10,7 +10,6 @@ export default function AdminChatMonitor() {
         try {
             const raw = localStorage.getItem('adminSession');
             const parsed = raw ? JSON.parse(raw) : null;
-            // Support either `_id` or `id` keys depending on backend response shape
             return parsed?._id || parsed?.id || null;
         } catch {
             return null;
@@ -28,12 +27,10 @@ export default function AdminChatMonitor() {
     };
 
     useEffect(() => {
-        // Preselect chat from URL (?chat=ID)
         try {
             const params = new URLSearchParams(window.location.search);
             const chatParam = params.get('chat');
             if (chatParam) {
-                // We'll select after list loads
                 setActive(prev => prev && prev._id === chatParam ? prev : prev);
             }
         } catch { }
@@ -49,7 +46,6 @@ export default function AdminChatMonitor() {
         return () => { if (socketRef.current) { socketRef.current.disconnect(); socketRef.current = null; } };
     }, []);
 
-    // After chats are loaded, honor URL chat param selection
     useEffect(() => {
         try {
             const params = new URLSearchParams(window.location.search);
@@ -61,17 +57,38 @@ export default function AdminChatMonitor() {
         } catch { }
     }, [chats.length]);
 
+    const getParticipantName = (chat, role, id) => {
+        if (!chat?.participants) return role;
+        // Try to find by model and id
+        const p = chat.participants.find(p =>
+            (role ? p.role === role : true) && (id ? String(p.user) === String(id) : true)
+        );
+        return p?.name || role;
+    };
+    const formatTime = (timestamp) => new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+
+
     return (
-        <div className="vendor-chat" style={{ display: 'flex', gap: 16, flexDirection: 'row' }}   >
-            <div className="sidebar" style={{ width: 300, borderRight: '1px solid #ccc', height: '80vh', }}>
-                {(chats || []).map(c => (
-                    <div key={c._id} className={`chat-item ${active?._id === c._id ? 'active' : ''}`} onClick={() => setActive(c)}>
-                        <div className="title">Cust {String(c.customer).slice(-4)} ↔ Vend {String(c.vendor).slice(-4)}</div>
-                        <div className="subtitle">{c.serviceCategory}</div>
-                        <div className="time">{new Date(c.lastMessageAt).toLocaleString()}</div>
-                    </div>
-                ))}
+        <div className="vendor-chat" style={{ display: 'flex', gap: 16, flexDirection: 'row' }}>
+            <div className="sidebar" style={{ width: 300, borderRight: '1px solid #ccc', height: '80vh' }}>
+                {(chats || []).map(c => {
+                    const custName = getParticipantName(c, 'Customer');
+                    const vendName = getParticipantName(c, 'Vendor');
+                    return (
+                        <div
+                            key={c._id}
+                            className={`chat-item ${active?._id === c._id ? 'active' : ''}`}
+                            onClick={() => setActive(c)}
+                        >
+                            <div className="title">{custName} ↔ {vendName}</div>
+                            <div className="subtitle">{c.serviceCategory}</div>
+                            <div className="time">{new Date(c.lastMessageAt).toLocaleString()}</div>
+                        </div>
+                    );
+                })}
             </div>
+
             <div className="content" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', width: '70%' }}>
                 {!adminId && (
                     <div style={{ padding: 8, background: '#fff3cd', border: '1px solid #ffe8a1', borderRadius: 8, marginBottom: 8 }}>
@@ -85,6 +102,7 @@ export default function AdminChatMonitor() {
                         }}>Reload Session</button>
                     </div>
                 )}
+
                 {!active ? (
                     <div className="empty">Select a conversation to view</div>
                 ) : (
@@ -93,112 +111,135 @@ export default function AdminChatMonitor() {
                             <i className="fas fa-user-shield"></i>
                             <div>Monitoring Chat • {active.serviceCategory}</div>
                         </div>
+
                         <div className="chat-body read-only" style={{ height: 'calc(100% - 120px)', overflowY: 'auto' }}>
-                            {(active.messages || []).map((m, idx) => (
-                                <div key={idx} className={`msg ${m.senderModel === 'Admin' ? 'admin' : m.senderModel === 'System' ? 'system' : m.senderModel === 'Customer' ? 'customer' : 'vendor'}`}>
-                                    <div className="bubble" style={{ scrollBehavior: 'smooth', backgroundColor: m.senderModel === 'Admin' ? '#d1e7dd' : m.senderModel === 'System' ? '#f8d7da' : m.senderModel === 'Customer' ? '#fff3cd' : '#d1ecf1' }}>{m.content}</div>
-                                    <div className="meta">{m.senderModel} • {new Date(m.timestamp).toLocaleString()}</div>
-                                </div>
-                            ))}
+                            {(active.messages || []).map((m, idx) => {
+                                const senderName = getParticipantName(active, m.senderModel, m.sender);
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={`msg ${m.senderModel === 'Admin'
+                                            ? 'admin'
+                                            : m.senderModel === 'System'
+                                                ? 'system'
+                                                : m.senderModel === 'Customer'
+                                                    ? 'customer'
+                                                    : 'vendor'
+                                            }`}
+                                    >
+                                        <div
+                                            className="bubble"
+                                            style={{
+                                                display: 'inline-block',
+                                                maxWidth: '80%',
+                                                width: 'calc(fit-content + 2px)',
+                                                wordWrap: 'break-word',
+                                                padding: '8px 12px',
+                                                borderRadius: 10,
+                                                marginBottom: 4,
+                                                backgroundColor:
+                                                    m.senderModel === 'Admin'
+                                                        ? '#d1e7dd'
+                                                        : m.senderModel === 'System'
+                                                            ? '#f8d7da'
+                                                            : m.senderModel === 'Customer'
+                                                                ? '#fff3cd'
+                                                                : '#d1ecf1'
+                                            }}
+                                        >
+                                            <div className="meta" style={{ fontSize: '0.8rem', color: '#555' }}>
+                                                {senderName}
+                                            </div>
+                                            {m.content}
+                                            <div className="meta" style={{ fontSize: '0.8rem', color: '#555', float: 'right' }}>
+                                                {formatTime(m.timestamp)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
+
                         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                            <button className="btn secondary-btn" onClick={async () => {
-                                console.log('🔧 ADMIN UI - Join Chat clicked');
-                                console.log('🔧 ADMIN UI - adminId:', adminId);
-                                console.log('🔧 ADMIN UI - active chat:', active);
-
-                                if (!adminId) {
-                                    alert('No admin ID found. Please login again.');
-                                    return;
-                                }
-                                if (!active?._id) {
-                                    alert('No chat selected');
-                                    return;
-                                }
-
-                                const url = API_ENDPOINTS.CHAT_ADMIN_JOIN(active._id);
-                                const payload = { adminId };
-                                console.log('🔧 ADMIN UI - URL:', url);
-                                console.log('🔧 ADMIN UI - Payload:', payload);
-
-                                try {
-                                    const res = await fetch(url, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify(payload)
-                                    });
-
-                                    console.log('🔧 ADMIN UI - Response status:', res.status);
-                                    console.log('🔧 ADMIN UI - Response ok:', res.ok);
-
-                                    if (res.ok) {
-                                        const data = await res.json();
-                                        console.log('🔧 ADMIN UI - Response data:', data);
-                                        if (socketRef.current) socketRef.current.emit('joinConversation', { chatId: active._id });
-                                        // Mark as joined and reflect in URL
-                                        setJoinedChatIds(prev => new Set(prev).add(active._id));
-                                        try {
-                                            const params = new URLSearchParams(window.location.search);
-                                            params.set('chat', active._id);
-                                            window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
-                                        } catch { }
-                                        alert('Joined chat successfully (staying on this page to monitor live).');
-                                    } else {
-                                        const err = await res.json();
-                                        console.error('🔧 ADMIN UI - Error response:', err);
-                                        alert('Failed to join: ' + (err.message || 'Unknown error'));
+                            <button
+                                className="btn secondary-btn"
+                                onClick={async () => {
+                                    if (!adminId) {
+                                        alert('No admin ID found. Please login again.');
+                                        return;
                                     }
-                                } catch (e) {
-                                    console.error('🔧 ADMIN UI - Exception:', e);
-                                    alert('Failed to join chat: ' + e.message);
-                                }
-                            }}>Join Chat</button>
-                            <button className="btn secondary-btn" onClick={async () => {
-                                console.log('🔧 ADMIN UI - Send Auto Message clicked');
-                                console.log('🔧 ADMIN UI - adminId:', adminId);
-                                console.log('🔧 ADMIN UI - active chat:', active);
-
-                                if (!adminId) {
-                                    alert('No admin ID found. Please login again.');
-                                    return;
-                                }
-                                if (!active?._id) {
-                                    alert('No chat selected');
-                                    return;
-                                }
-
-                                const url = API_ENDPOINTS.CHAT_ADMIN_AUTO_MESSAGE(active._id);
-                                const payload = { adminId, templateKey: 'apology' };
-                                console.log('🔧 ADMIN UI - URL:', url);
-                                console.log('🔧 ADMIN UI - Payload:', payload);
-
-                                try {
-                                    const res = await fetch(url, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify(payload)
-                                    });
-
-                                    console.log('🔧 ADMIN UI - Response status:', res.status);
-                                    console.log('🔧 ADMIN UI - Response ok:', res.ok);
-
-                                    if (res.ok) {
-                                        const data = await res.json();
-                                        console.log('🔧 ADMIN UI - Response data:', data);
-                                        if (socketRef.current) socketRef.current.emit('joinConversation', { chatId: active._id });
-                                        alert('Auto message sent');
-                                        // Refresh chat list to show new message
-                                        window.location.reload();
-                                    } else {
-                                        const err = await res.json();
-                                        console.error('🔧 ADMIN UI - Error response:', err);
-                                        alert('Failed to send auto message: ' + (err.message || 'Unknown error'));
+                                    if (!active?._id) {
+                                        alert('No chat selected');
+                                        return;
                                     }
-                                } catch (e) {
-                                    console.error('🔧 ADMIN UI - Exception:', e);
-                                    alert('Failed to send auto message: ' + e.message);
-                                }
-                            }}>Send Auto Message</button>
+                                    const url = API_ENDPOINTS.CHAT_ADMIN_JOIN(active._id);
+                                    const payload = { adminId };
+
+                                    try {
+                                        const res = await fetch(url, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(payload)
+                                        });
+
+                                        if (res.ok) {
+                                            if (socketRef.current) socketRef.current.emit('joinConversation', { chatId: active._id });
+                                            setJoinedChatIds(prev => new Set(prev).add(active._id));
+                                            try {
+                                                const params = new URLSearchParams(window.location.search);
+                                                params.set('chat', active._id);
+                                                window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+                                            } catch { }
+                                            alert('Joined chat successfully (staying on this page to monitor live).');
+                                        } else {
+                                            const err = await res.json();
+                                            alert('Failed to join: ' + (err.message || 'Unknown error'));
+                                        }
+                                    } catch (e) {
+                                        alert('Failed to join chat: ' + e.message);
+                                    }
+                                }}
+                            >
+                                Join Chat
+                            </button>
+
+                            <button
+                                className="btn secondary-btn"
+                                onClick={async () => {
+                                    if (!adminId) {
+                                        alert('No admin ID found. Please login again.');
+                                        return;
+                                    }
+                                    if (!active?._id) {
+                                        alert('No chat selected');
+                                        return;
+                                    }
+                                    const url = API_ENDPOINTS.CHAT_ADMIN_AUTO_MESSAGE(active._id);
+                                    const payload = { adminId, templateKey: 'apology' };
+
+                                    try {
+                                        const res = await fetch(url, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(payload)
+                                        });
+
+                                        if (res.ok) {
+                                            if (socketRef.current) socketRef.current.emit('joinConversation', { chatId: active._id });
+                                            alert('Auto message sent');
+                                            window.location.reload();
+                                        } else {
+                                            const err = await res.json();
+                                            alert('Failed to send auto message: ' + (err.message || 'Unknown error'));
+                                        }
+                                    } catch (e) {
+                                        alert('Failed to send auto message: ' + e.message);
+                                    }
+                                }}
+                            >
+                                Send Auto Message
+                            </button>
+
                             {joinedChatIds.has(active._id) && (
                                 <span style={{ alignSelf: 'center', color: '#2e7d32' }}>Joined ✓</span>
                             )}
@@ -209,5 +250,3 @@ export default function AdminChatMonitor() {
         </div>
     );
 }
-
-

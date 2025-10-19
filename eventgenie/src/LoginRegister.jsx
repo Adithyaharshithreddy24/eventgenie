@@ -37,6 +37,12 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
     const [vendorUsernameStatus, setVendorUsernameStatus] = useState({ available: null, message: '' });
     const [usernameChecking, setUsernameChecking] = useState(false);
     const [vendorUsernameChecking, setVendorUsernameChecking] = useState(false);
+    const [showLoginPassword, setShowLoginPassword] = useState(false);
+    const [showCustomerPassword, setShowCustomerPassword] = useState(false);
+    const [showCustomerConfirmPassword, setShowCustomerConfirmPassword] = useState(false);
+    const [showVendorPassword, setShowVendorPassword] = useState(false);
+    const [showVendorConfirmPassword, setShowVendorConfirmPassword] = useState(false);
+
     const navigate = useNavigate();
 
     // Handle navigation after login/registration
@@ -119,15 +125,12 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
                 setError('Invalid vendor username or password');
             }
         } else if (userType === 'admin') {
-            // Handle admin login
             handleAdminLogin(username, password);
         }
     };
 
     const handleCustomerRegister = async (e) => {
         e.preventDefault();
-        console.log('Customer registration form data:', regData);
-
         if (!regData.name || !regData.email || !regData.phone || !regData.address || !regData.username || !regData.password || !regData.confirmPassword) {
             setRegError('Please fill all fields');
             return;
@@ -156,8 +159,6 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
 
     const handleVendorRegister = async (e) => {
         e.preventDefault();
-        console.log('Vendor registration form data:', vendorData);
-
         if (!vendorData.name || !vendorData.businessName || !vendorData.email || !vendorData.phone || !vendorData.about || !vendorData.username || !vendorData.password || !vendorData.confirmPassword) {
             setVendorSuccess('');
             setRegError('Please fill all fields');
@@ -179,7 +180,6 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
             const success = await register(vendorData, 'vendor');
             if (success) {
                 setVendorSuccess('Vendor registration successful! Please wait for admin approval before you can log in.');
-                // Don't redirect, let them stay on the page
             } else {
                 setVendorSuccess('');
                 setRegError('Registration failed. Please try again.');
@@ -194,9 +194,7 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
         try {
             const response = await fetch('http://localhost:5001/api/admin/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
             });
 
@@ -214,14 +212,8 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
         }
     };
 
-    if (isLoggedIn) {
-        navigate('/profile');
-        return null;
-    }
-    if (isVendorLoggedIn) {
-        navigate('/vendor-dashboard');
-        return null;
-    }
+    if (isLoggedIn) return null;
+    if (isVendorLoggedIn) return null;
 
     return (
         <section id="login" className="page active">
@@ -231,6 +223,7 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
                         <button className={`auth-tab ${activeTab === 'login' ? 'active' : ''}`} onClick={() => setActiveTab('login')}>Login</button>
                         <button className={`auth-tab ${activeTab === 'register' ? 'active' : ''}`} onClick={() => setActiveTab('register')}>Register</button>
                     </div>
+
                     {activeTab === 'login' && (
                         <div id="login-form" className="auth-form active">
                             <h2>Login to Your Account</h2>
@@ -246,21 +239,36 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="login-password">Password</label>
-                                    <input type="password" id="login-password" value={password} onChange={e => setPassword(e.target.value)} required />
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type={showLoginPassword ? 'text' : 'password'}
+                                            id="login-password"
+                                            value={password}
+                                            onChange={e => setPassword(e.target.value)}
+                                            required
+                                        />
+                                        <span
+                                            onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer' }}
+                                        >
+                                            <i className={`fas fa-eye${showLoginPassword ? '-slash' : ''}`}></i>
+                                        </span>
+                                    </div>
                                 </div>
                                 {error && <p style={{ color: 'red' }}>{error}</p>}
                                 <button type="submit" className="btn primary-btn">Login</button>
                             </form>
                         </div>
                     )}
+
                     {activeTab === 'register' && (
                         <div id="register-form" className="auth-form active">
                             <h2>Create an Account</h2>
                             <div className="user-type-selection">
                                 <button className={`user-type-btn ${userType === 'customer' ? 'active' : ''}`} onClick={() => setUserType('customer')}>Customer</button>
                                 <button className={`user-type-btn ${userType === 'vendor' ? 'active' : ''}`} onClick={() => setUserType('vendor')}>Vendor</button>
-                                <button className={`user-type-btn ${userType === 'admin' ? 'active' : ''}`} onClick={() => setUserType('admin')}>Admin</button>
                             </div>
+
                             {/* Customer Registration Form */}
                             <form id="customer-register-form" className={`register-form${userType === 'customer' ? ' active' : ''}`} onSubmit={handleCustomerRegister} style={{ display: userType === 'customer' ? 'block' : 'none' }}>
                                 <div className="form-group">
@@ -281,46 +289,59 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="customer-username">Username</label>
-                                    <input
-                                        type="text"
-                                        id="customer-username"
-                                        value={regData.username}
-                                        onChange={e => setRegData({ ...regData, username: e.target.value })}
-                                        required
-                                    />
+                                    <input type="text" id="customer-username" value={regData.username} onChange={e => setRegData({ ...regData, username: e.target.value })} required />
                                     {usernameStatus.available !== null && (
-                                        <div style={{
-                                            marginTop: '4px',
-                                            fontSize: '0.9rem',
-                                            color: usernameStatus.available ? '#28a745' : '#dc3545'
-                                        }}>
+                                        <div style={{ marginTop: '4px', fontSize: '0.9rem', color: usernameStatus.available ? '#28a745' : '#dc3545' }}>
                                             <i className={`fas fa-${usernameStatus.available ? 'check' : 'times'}`}></i>
                                             {usernameStatus.message}
                                         </div>
                                     )}
                                     {usernameChecking && (
-                                        <div style={{
-                                            marginTop: '4px',
-                                            fontSize: '0.9rem',
-                                            color: '#007bff'
-                                        }}>
+                                        <div style={{ marginTop: '4px', fontSize: '0.9rem', color: '#007bff' }}>
                                             <i className="fas fa-spinner fa-spin"></i>
                                             Checking username availability...
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Password */}
                                 <div className="form-group">
                                     <label htmlFor="customer-password">Password</label>
-                                    <input type="password" id="customer-password" value={regData.password} onChange={e => setRegData({ ...regData, password: e.target.value })} required />
-                                    <div className="password-strength-meter">
-                                        <div className="strength-bar"></div>
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type={showCustomerPassword ? 'text' : 'password'}
+                                            id="customer-password"
+                                            value={regData.password}
+                                            onChange={e => setRegData({ ...regData, password: e.target.value })}
+                                            required
+                                        />
+                                        <span
+                                            onClick={() => setShowCustomerPassword(!showCustomerPassword)}
+                                            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer' }}
+                                        >
+                                            <i className={`fas fa-eye${showCustomerPassword ? '-slash' : ''}`}></i>
+                                        </span>
                                     </div>
-                                    <p className="password-hint">Password must include uppercase, lowercase, number, and be at least 8 characters long.</p>
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="customer-confirm-password">Confirm Password</label>
-                                    <input type="password" id="customer-confirm-password" value={regData.confirmPassword} onChange={e => setRegData({ ...regData, confirmPassword: e.target.value })} required />
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type={showCustomerConfirmPassword ? 'text' : 'password'}
+                                            id="customer-confirm-password"
+                                            value={regData.confirmPassword}
+                                            onChange={e => setRegData({ ...regData, confirmPassword: e.target.value })}
+                                            required
+                                        />
+                                        <span
+                                            onClick={() => setShowCustomerConfirmPassword(!showCustomerConfirmPassword)}
+                                            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer' }}
+                                        >
+                                            <i className={`fas fa-eye${showCustomerConfirmPassword ? '-slash' : ''}`}></i>
+                                        </span>
+                                    </div>
                                 </div>
+
                                 <div className="form-group">
                                     <label htmlFor="reg-photo">Profile Photo URL (optional)</label>
                                     <input type="url" id="reg-photo" value={regData.photo} onChange={e => setRegData({ ...regData, photo: e.target.value })} />
@@ -328,6 +349,7 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
                                 {regError && <p style={{ color: 'red' }}>{regError}</p>}
                                 <button type="submit" className="btn primary-btn">Register as Customer</button>
                             </form>
+
                             {/* Vendor Registration Form */}
                             <form id="vendor-register-form" className={`register-form${userType === 'vendor' ? ' active' : ''}`} onSubmit={handleVendorRegister} style={{ display: userType === 'vendor' ? 'block' : 'none' }}>
                                 <div className="form-group">
@@ -353,106 +375,88 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
                                 <div className="form-group">
                                     <label>Services Provided</label>
                                     <div className="checkbox-group">
-                                        <label className="checkbox-label">
-                                            <input type="checkbox" name="service-type" value="venue" checked={vendorData.services.includes('venue')} onChange={e => {
-                                                const checked = e.target.checked;
-                                                setVendorData(prev => ({
-                                                    ...prev,
-                                                    services: checked ? [...prev.services, 'venue'] : prev.services.filter(s => s !== 'venue')
-                                                }));
-                                            }} /> Venue
-                                        </label>
-                                        <label className="checkbox-label">
-                                            <input type="checkbox" name="service-type" value="catering" checked={vendorData.services.includes('catering')} onChange={e => {
-                                                const checked = e.target.checked;
-                                                setVendorData(prev => ({
-                                                    ...prev,
-                                                    services: checked ? [...prev.services, 'catering'] : prev.services.filter(s => s !== 'catering')
-                                                }));
-                                            }} /> Catering
-                                        </label>
-                                        <label className="checkbox-label">
-                                            <input type="checkbox" name="service-type" value="decor" checked={vendorData.services.includes('decor')} onChange={e => {
-                                                const checked = e.target.checked;
-                                                setVendorData(prev => ({
-                                                    ...prev,
-                                                    services: checked ? [...prev.services, 'decor'] : prev.services.filter(s => s !== 'decor')
-                                                }));
-                                            }} /> Decor
-                                        </label>
-                                        <label className="checkbox-label">
-                                            <input type="checkbox" name="service-type" value="entertainment" checked={vendorData.services.includes('entertainment')} onChange={e => {
-                                                const checked = e.target.checked;
-                                                setVendorData(prev => ({
-                                                    ...prev,
-                                                    services: checked ? [...prev.services, 'entertainment'] : prev.services.filter(s => s !== 'entertainment')
-                                                }));
-                                            }} /> Entertainment
-                                        </label>
+                                        {['venue', 'catering', 'decor', 'entertainment'].map(service => (
+                                            <label key={service} className="checkbox-label">
+                                                <input
+                                                    type="checkbox"
+                                                    name="service-type"
+                                                    value={service}
+                                                    checked={vendorData.services.includes(service)}
+                                                    onChange={e => {
+                                                        const checked = e.target.checked;
+                                                        setVendorData(prev => ({
+                                                            ...prev,
+                                                            services: checked ? [...prev.services, service] : prev.services.filter(s => s !== service)
+                                                        }));
+                                                    }}
+                                                /> {service.charAt(0).toUpperCase() + service.slice(1)}
+                                            </label>
+                                        ))}
                                     </div>
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="vendor-username">Username</label>
-                                    <input
-                                        type="text"
-                                        id="vendor-username"
-                                        value={vendorData.username}
-                                        onChange={e => setVendorData({ ...vendorData, username: e.target.value })}
-                                        required
-                                    />
-                                    {vendorUsernameStatus.available !== null && (
-                                        <div style={{
-                                            marginTop: '4px',
-                                            fontSize: '0.9rem',
-                                            color: vendorUsernameStatus.available ? '#28a745' : '#dc3545'
-                                        }}>
-                                            <i className={`fas fa-${vendorUsernameStatus.available ? 'check' : 'times'}`}></i>
-                                            {vendorUsernameStatus.message}
-                                        </div>
-                                    )}
-                                    {vendorUsernameChecking && (
-                                        <div style={{
-                                            marginTop: '4px',
-                                            fontSize: '0.9rem',
-                                            color: '#007bff'
-                                        }}>
+                                    <input type="text" id="vendor-username" value={vendorData.username} onChange={e => setVendorData({ ...vendorData, username: e.target.value })} required />
+                                    {vendorUsernameStatus.available !== null && (<div style={{ marginTop: '4px', fontSize: '0.9rem', color: vendorUsernameStatus.available ? '#28a745' : '#dc3545' }}>
+                                        <i className={`fas fa-${vendorUsernameStatus.available ? 'check' : 'times'}`}></i>
+                                        {vendorUsernameStatus.message} </div>)} {vendorUsernameChecking && (<div style={{ marginTop: '4px', fontSize: '0.9rem', color: '#007bff' }}>
                                             <i className="fas fa-spinner fa-spin"></i>
-                                            Checking username availability...
-                                        </div>
-                                    )}
+                                            Checking username availability... </div>)}
                                 </div>
+                                {/* Vendor Password */}
                                 <div className="form-group">
                                     <label htmlFor="vendor-password">Password</label>
-                                    <input type="password" id="vendor-password" value={vendorData.password} onChange={e => setVendorData({ ...vendorData, password: e.target.value })} required />
-                                    <div className="password-strength-meter">
-                                        <div className="strength-bar"></div>
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type={showVendorPassword ? 'text' : 'password'}
+                                            id="vendor-password"
+                                            value={vendorData.password}
+                                            onChange={e => setVendorData({ ...vendorData, password: e.target.value })}
+                                            required
+                                        />
+                                        <span
+                                            onClick={() => setShowVendorPassword(!showVendorPassword)}
+                                            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer' }}
+                                        >
+                                            <i className={`fas fa-eye${showVendorPassword ? '-slash' : ''}`}></i>
+                                        </span>
                                     </div>
-                                    <p className="password-hint">Password must include uppercase, lowercase, number, and be at least 8 characters long.</p>
                                 </div>
+
                                 <div className="form-group">
                                     <label htmlFor="vendor-confirm-password">Confirm Password</label>
-                                    <input type="password" id="vendor-confirm-password" value={vendorData.confirmPassword} onChange={e => setVendorData({ ...vendorData, confirmPassword: e.target.value })} required />
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type={showVendorConfirmPassword ? 'text' : 'password'}
+                                            id="vendor-confirm-password"
+                                            value={vendorData.confirmPassword}
+                                            onChange={e => setVendorData({ ...vendorData, confirmPassword: e.target.value })}
+                                            required
+                                        />
+                                        <span
+                                            onClick={() => setShowVendorConfirmPassword(!showVendorConfirmPassword)}
+                                            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer' }}
+                                        >
+                                            <i className={`fas fa-eye${showVendorConfirmPassword ? '-slash' : ''}`}></i>
+                                        </span>
+                                    </div>
                                 </div>
+
                                 <div className="form-group">
                                     <label htmlFor="vendor-photo">Profile Photo URL (optional)</label>
                                     <input type="url" id="vendor-photo" value={vendorData.photo} onChange={e => setVendorData({ ...vendorData, photo: e.target.value })} />
                                 </div>
-                                                                                                 <div className="form-group">
-                                     <label htmlFor="upi-id">UPI ID (optional)</label>
-                                     <input
-                                         type="text"
-                                         id="upi-id"
-                                         value={vendorData.upiId}
-                                         onChange={e => setVendorData({ ...vendorData, upiId: e.target.value })}
-                                         placeholder="yourname@bank"
-                                     />
-                                     <small style={{ color: '#666', fontSize: '0.9rem' }}>
-                                         Optional: Provide your UPI ID for receiving payments (e.g., vendor@hdfc). You can add this later in your profile.
-                                     </small>
-                                 </div>
-                                <div className="vendor-note">
-                                                                         <p>After registration, please wait for admin approval before you can access the vendor dashboard. You can add your UPI ID later in your profile settings.</p>
+
+                                <div className="form-group">
+                                    <label htmlFor="upi-id">UPI ID </label>
+                                    <input type="text" id="upi-id" value={vendorData.upiId} onChange={e => setVendorData({ ...vendorData, upiId: e.target.value })} placeholder="yourname@bank" required />
+                                    <small style={{ color: '#666', fontSize: '0.9rem' }}>Optional: Provide your UPI ID for receiving payments. You can add this later in your profile.</small>
                                 </div>
+
+                                <div className="vendor-note">
+                                    <p>After registration, please wait for admin approval before you can access the vendor dashboard.</p>
+                                </div>
+
                                 {regError && <p style={{ color: 'red' }}>{regError}</p>}
                                 {vendorSuccess && <p style={{ color: 'green' }}>{vendorSuccess}</p>}
                                 <button type="submit" className="btn primary-btn">Register as Vendor</button>
@@ -460,8 +464,8 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
                         </div>
                     )}
                 </div>
-            </div>
-        </section>
+            </div >
+        </section >
     );
 }
 

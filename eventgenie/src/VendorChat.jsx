@@ -15,7 +15,6 @@ export default function VendorChat({ vendor }) {
             const data = await res.json();
             setChats(data.chats || []);
             if (!active && data.chats?.length) setActive(data.chats[0]);
-            // connect if not connected
             if (!socketRef.current) {
                 socketRef.current = io(API_ENDPOINTS.CUSTOMERS.replace('/api/customers', ''));
                 socketRef.current.on('receiveMessage', ({ chatId, message }) => {
@@ -24,7 +23,6 @@ export default function VendorChat({ vendor }) {
                     try { if (window?.toast) window.toast('New message'); } catch { }
                 });
             }
-            // auto join active
             const chatToJoin = data.chats && data.chats[0];
             if (socketRef.current && chatToJoin?._id) socketRef.current.emit('joinConversation', { chatId: chatToJoin._id });
         }
@@ -64,16 +62,29 @@ export default function VendorChat({ vendor }) {
 
     useEffect(() => () => { if (socketRef.current) { socketRef.current.disconnect(); socketRef.current = null; } }, []);
 
+    // Helper to extract customer name
+    const getCustomerName = (chat) => {
+        const customerParticipant = (chat.participants || []).find(p => p.role === 'Customer');
+        return customerParticipant?.name || `Customer ${String(chat.customer).slice(-4)}`;
+    };
+    const formatTime = (timestamp) => new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+
     return (
         <div className="vendor-chat">
             <div className="sidebar">
                 {(chats || []).map(c => (
-                    <div key={c._id} className={`chat-item ${active?._id === c._id ? 'active' : ''}`} onClick={() => setActive(c)}>
-                        <div className="title">Customer #{String(c.customer).slice(-4)}</div>
+                    <div
+                        key={c._id}
+                        className={`chat-item ${active?._id === c._id ? 'active' : ''}`}
+                        onClick={() => setActive(c)}
+                    >
+                        <div className="title">{getCustomerName(c)}</div>
                         <div className="time">{new Date(c.lastMessageAt).toLocaleString()}</div>
                     </div>
                 ))}
             </div>
+
             <div className="content">
                 {!active ? (
                     <div className="empty">Select a chat</div>
@@ -81,19 +92,55 @@ export default function VendorChat({ vendor }) {
                     <>
                         <div className="chat-header">
                             <i className="fas fa-user-circle"></i>
-                            <div>Customer #{String(active.customer).slice(-4)} — {active.serviceCategory}</div>
+                            <div>{getCustomerName(active)} — {active.serviceCategory}</div>
                         </div>
+
                         <div className="chat-body">
                             {(active.messages || []).map((m, idx) => (
-                                <div key={idx} className={`msg ${m.senderModel === 'Vendor' ? 'me' : m.senderModel === 'System' ? 'system' : 'them'}`}>
-                                    <div className="bubble">{m.content}</div>
-                                    <div className="meta">{new Date(m.timestamp).toLocaleString()}</div>
+                                <div
+                                    key={idx}
+                                    className={`msg ${m.senderModel === 'Vendor'
+                                        ? 'me'
+                                        : m.senderModel === 'System'
+                                            ? 'system'
+                                            : 'them'
+                                        }`}
+                                >
+                                    <div className="bubble">{m.content}
+                                        <div className="meta" style={{ float: 'right' }}>{formatTime(m.timestamp)}</div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
+
                         <div className="chat-input-row">
-                            <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message" />
-                            <button className="primary-btn" onClick={send} disabled={!message.trim()}>Send</button>
+                            <input
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && send()}
+                                placeholder="Type a message"
+                            />
+                            <button
+                                onClick={send}
+                                className="primary-btn"
+                                style={{
+                                    backgroundColor: '#6a11cb',
+                                    border: 'none',
+                                    borderRadius: '50%',
+                                    width: '45px',
+                                    height: '45px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    transition: 'background 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#5b0fb8'}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6a11cb'}
+                            >
+                                <i className="fas fa-paper-plane" style={{ color: 'white', fontSize: '18px' }}></i>
+                            </button>
                         </div>
                     </>
                 )}
@@ -101,5 +148,3 @@ export default function VendorChat({ vendor }) {
         </div>
     );
 }
-
-

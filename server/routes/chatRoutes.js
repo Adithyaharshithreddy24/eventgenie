@@ -10,7 +10,6 @@ const router = express.Router();
 function systemGreeting(toModel, toId) {
     return {
         senderModel: 'System',
-        // sender omitted for system
         receiverModel: toModel,
         receiver: toId,
         content: 'Hello there! How can we assist you today?',
@@ -42,8 +41,8 @@ router.post('/start', async (req, res) => {
                 vendor: vendorId,
                 serviceCategory,
                 participants: [
-                    { role: 'Customer', model: 'Customer', user: customerId },
-                    { role: 'Vendor', model: 'Vendor', user: vendorId }
+                    { role: 'Customer', model: 'Customer', user: customerId, name: customer.name },
+                    { role: 'Vendor', model: 'Vendor', user: vendorId, name: vendor.name }
                 ],
                 messages: [systemGreeting('Customer', customerId)],
                 lastMessageAt: new Date(),
@@ -55,7 +54,6 @@ router.post('/start', async (req, res) => {
     } catch (err) {
         console.error(err);
         if (err && err.code === 11000) {
-            // Unique index conflict; fetch existing
             const { customerId, vendorId, serviceCategory } = req.body || {};
             const chat = await Chat.findOne({ customer: customerId, vendor: vendorId, serviceCategory });
             if (chat) return res.json({ chat });
@@ -96,118 +94,96 @@ router.get('/admin/all', async (_req, res) => {
     }
 });
 
-// Admin: start chat with any customer or vendor (creates or returns existing)
+// Admin: start chat with any customer or vendor
 router.post('/admin/start', async (req, res) => {
     try {
         const { adminId, customerId, vendorId, serviceCategory } = req.body;
         if (!adminId || !serviceCategory || (!customerId && !vendorId)) {
             return res.status(400).json({ message: 'adminId, serviceCategory and at least one participant required' });
         }
+
         const admin = await Admin.findById(adminId);
         if (!admin) return res.status(404).json({ message: 'Admin not found' });
-        let chat;
-        if (customerId && vendorId) {
-            chat = await Chat.findOne({ customer: customerId, vendor: vendorId, serviceCategory });
-        }
+
+        const customer = customerId ? await Customer.findById(customerId) : null;
+        const vendor = vendorId ? await Vendor.findById(vendorId) : null;
+
+        let chat = (customerId && vendorId)
+            ? await Chat.findOne({ customer: customerId, vendor: vendorId, serviceCategory })
+            : null;
+
         if (!chat) {
             chat = new Chat({
                 customer: customerId || undefined,
                 vendor: vendorId || undefined,
                 serviceCategory,
                 participants: [
-                    ...(customerId ? [{ role: 'Customer', model: 'Customer', user: customerId }] : []),
-                    ...(vendorId ? [{ role: 'Vendor', model: 'Vendor', user: vendorId }] : []),
-                    { role: 'Admin', model: 'Admin', user: adminId }
+                    ...(customer ? [{ role: 'Customer', model: 'Customer', user: customerId, name: customer.name }] : []),
+                    ...(vendor ? [{ role: 'Vendor', model: 'Vendor', user: vendorId, name: vendor.name }] : []),
+                    { role: 'Admin', model: 'Admin', user: adminId, name: admin.name }
                 ],
-                messages: [systemGreeting(customerId ? 'Customer' : (vendorId ? 'Vendor' : 'Admin'), customerId || vendorId || adminId)],
+                messages: [systemGreeting(customer ? 'Customer' : (vendor ? 'Vendor' : 'Admin'), customerId || vendorId || adminId)],
                 lastMessageAt: new Date(),
             });
             await chat.save();
         } else {
-            // ensure admin is participant
-            const hasAdmin = (chat.participants || []).some(p => p.role === 'Admin' && String(p.user) === String(adminId));
+            const hasAdmin = chat.participants.some(p => p.role === 'Admin' && String(p.user) === String(adminId));
             if (!hasAdmin) {
-                chat.participants.push({ role: 'Admin', model: 'Admin', user: adminId });
+                chat.participants.push({ role: 'Admin', model: 'Admin', user: adminId, name: admin.name });
                 await chat.save();
             }
         }
+
         res.json({ chat });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// Admin: join existing chat (ensure participant)
+// Admin: join existing chat
 router.post('/admin/:chatId/join', async (req, res) => {
     try {
-        console.log('🔧 ADMIN JOIN - Request received:', req.params, req.body);
         const { chatId } = req.params;
         const { adminId } = req.body;
 
-        if (!adminId) {
-            console.log('❌ ADMIN JOIN - Missing adminId');
-            return res.status(400).json({ message: 'adminId required' });
-        }
+        if (!adminId) return res.status(400).json({ message: 'adminId required' });
 
-        console.log('🔍 ADMIN JOIN - Looking for chat:', chatId);
         const chat = await Chat.findById(chatId);
-        if (!chat) {
-            console.log('❌ ADMIN JOIN - Chat not found:', chatId);
-            return res.status(404).json({ message: 'Chat not found' });
-        }
+        if (!chat) return res.status(404).json({ message: 'Chat not found' });
 
-        console.log('📋 ADMIN JOIN - Current participants:', chat.participants);
-        const hasAdmin = (chat.participants || []).some(p => p.role === 'Admin' && String(p.user) === String(adminId));
-        console.log('👤 ADMIN JOIN - Has admin?', hasAdmin);
-
+        const hasAdmin = chat.participants.some(p => p.role === 'Admin' && String(p.user) === String(adminId));
         if (!hasAdmin) {
-            chat.participants = chat.participants || [];
-            chat.participants.push({ role: 'Admin', model: 'Admin', user: adminId });
+            const admin = await Admin.findById(adminId);
+            chat.participants.push({ role: 'Admin', model: 'Admin', user: adminId, name: admin?.name || 'Admin' });
             await chat.save();
-            console.log('✅ ADMIN JOIN - Added admin to participants');
-        } else {
-            console.log('ℹ️ ADMIN JOIN - Admin already participant');
         }
 
-        console.log('✅ ADMIN JOIN - Success, returning chat');
         res.json({ chat });
     } catch (err) {
-        console.error('❌ ADMIN JOIN - Error:', err);
         res.status(500).json({ message: err.message });
     }
 });
 
-// Admin: send auto message and mark intervention
+// Admin: send auto message
 router.post('/admin/:chatId/auto-message', async (req, res) => {
     try {
-        console.log('🔧 ADMIN AUTO-MESSAGE - Request received:', req.params, req.body);
         const { chatId } = req.params;
         const { adminId, templateKey } = req.body;
 
-        if (!adminId) {
-            console.log('❌ ADMIN AUTO-MESSAGE - Missing adminId');
-            return res.status(400).json({ message: 'adminId required' });
-        }
+        if (!adminId) return res.status(400).json({ message: 'adminId required' });
 
         const templates = {
             apology: 'We apologize for the inconvenience. Our team is looking into your issue.',
             welcome: 'Hello! Admin has joined this chat to assist further.',
         };
         const content = templates[templateKey] || templates.apology;
-        console.log('💬 ADMIN AUTO-MESSAGE - Content:', content);
 
-        console.log('🔍 ADMIN AUTO-MESSAGE - Looking for chat:', chatId);
         const chat = await Chat.findById(chatId);
-        if (!chat) {
-            console.log('❌ ADMIN AUTO-MESSAGE - Chat not found:', chatId);
-            return res.status(404).json({ message: 'Chat not found' });
-        }
+        if (!chat) return res.status(404).json({ message: 'Chat not found' });
 
-        console.log('📋 ADMIN AUTO-MESSAGE - Current participants:', chat.participants);
-        chat.participants = chat.participants || [];
+        const admin = await Admin.findById(adminId);
         if (!chat.participants.some(p => p.role === 'Admin' && String(p.user) === String(adminId))) {
-            chat.participants.push({ role: 'Admin', model: 'Admin', user: adminId });
-            console.log('✅ ADMIN AUTO-MESSAGE - Added admin to participants');
+            chat.participants.push({ role: 'Admin', model: 'Admin', user: adminId, name: admin?.name || 'Admin' });
         }
 
         const message = {
@@ -218,16 +194,13 @@ router.post('/admin/:chatId/auto-message', async (req, res) => {
             content,
             timestamp: new Date()
         };
-        console.log('💬 ADMIN AUTO-MESSAGE - Adding message:', message);
 
         chat.messages.push(message);
         chat.lastMessageAt = new Date();
         await chat.save();
-        console.log('✅ ADMIN AUTO-MESSAGE - Message saved successfully');
 
         res.json({ chat });
     } catch (err) {
-        console.error('❌ ADMIN AUTO-MESSAGE - Error:', err);
         res.status(500).json({ message: err.message });
     }
 });
@@ -245,20 +218,14 @@ router.post('/:chatId/send', async (req, res) => {
         }
         if (!content || !content.trim()) return res.status(400).json({ message: 'Message content required' });
 
-        // Basic guard: ensure message matches chat participants when sender/receiver are cust/vendor
         const chat = await Chat.findById(chatId);
         if (!chat) return res.status(404).json({ message: 'Chat not found' });
+
         if (senderModel === 'Customer' && String(chat.customer) !== String(senderId)) {
             return res.status(400).json({ message: 'Sender does not belong to this chat' });
         }
         if (senderModel === 'Vendor' && String(chat.vendor) !== String(senderId)) {
             return res.status(400).json({ message: 'Sender does not belong to this chat' });
-        }
-        if (receiverModel === 'Customer' && String(chat.customer) !== String(receiverId)) {
-            return res.status(400).json({ message: 'Receiver does not belong to this chat' });
-        }
-        if (receiverModel === 'Vendor' && String(chat.vendor) !== String(receiverId)) {
-            return res.status(400).json({ message: 'Receiver does not belong to this chat' });
         }
 
         chat.messages.push({
@@ -279,5 +246,3 @@ router.post('/:chatId/send', async (req, res) => {
 });
 
 module.exports = router;
-
-
