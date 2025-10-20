@@ -90,8 +90,28 @@ export default function CustomerChat({ customer, vendor, serviceCategory, onClos
         }
     };
 
+    // Mark messages as read when chat loads
+    const markAsRead = async (chatId) => {
+        try {
+            await fetch(`${API_ENDPOINTS.CHAT_SEND(chatId).replace('/send', '/read')}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userType: 'customer', userId: customer.id })
+            });
+        } catch (error) {
+            console.error('Failed to mark messages as read:', error);
+        }
+    };
+
     useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [list.length]);
     useEffect(() => () => { socketRef.current?.disconnect(); socketRef.current = null; }, []);
+
+    // Mark messages as read when chat loads
+    useEffect(() => {
+        if (chat?._id) {
+            markAsRead(chat._id);
+        }
+    }, [chat?._id]);
 
     const formatTime = (timestamp) => new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 

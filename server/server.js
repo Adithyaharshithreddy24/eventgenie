@@ -5,6 +5,7 @@ const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 const Chat = require('./models/Chat');
+const Notification = require('./models/Notification');
 require('dotenv').config();
 
 // Import cron jobs
@@ -88,9 +89,66 @@ io.on('connection', (socket) => {
             };
             chat.messages.push(message);
             chat.lastMessageAt = new Date();
+            
+            // Update unread count for the receiver
+            if (receiverModel === 'Customer') {
+                chat.unreadCount.customer = (chat.unreadCount.customer || 0) + 1;
+            } else if (receiverModel === 'Vendor') {
+                chat.unreadCount.vendor = (chat.unreadCount.vendor || 0) + 1;
+            }
+            
             await chat.save();
 
             io.to(`chat:${chatId}`).emit('receiveMessage', { chatId, message });
+
+            // Create notification for the receiver
+            try {
+                let recipientType = null;
+                let recipientId = null;
+                let title = 'New Message';
+                const messageText = content.trim();
+                let actionUrl = '';
+
+                if (receiverModel === 'Customer') {
+                    recipientType = 'customer';
+                    recipientId = chat.customer;
+                    title = 'New message from vendor';
+                    actionUrl = `/customer/profile?openChat=1&chatId=${encodeURIComponent(chatId)}&vendorId=${encodeURIComponent(String(chat.vendor))}&category=${encodeURIComponent(chat.serviceCategory)}`;
+                } else if (receiverModel === 'Vendor') {
+                    recipientType = 'vendor';
+                    recipientId = chat.vendor;
+                    title = 'New message from customer';
+                    actionUrl = `/vendor/vendor-dashboard?openChat=1&chatId=${encodeURIComponent(chatId)}`;
+                }
+
+                if (recipientType && recipientId) {
+                    const notif = new Notification({
+                        recipientId: recipientId,
+                        recipientType,
+                        type: 'chat_message',
+                        title,
+                        message: messageText,
+                        actionUrl,
+                        metadata: { chatId, senderModel, senderId, receiverModel, receiverId }
+                    });
+                    await notif.save();
+                    console.log(`Created ${recipientType} notification (socket) for ${recipientId}:`, {
+                        title,
+                        message: messageText,
+                        actionUrl
+                    });
+                } else {
+                    console.log('No notification created (socket) - missing recipient info:', {
+                        recipientType,
+                        recipientId,
+                        receiverModel,
+                        chatCustomer: chat.customer,
+                        chatVendor: chat.vendor
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to create chat notification (socket):', e?.message || e);
+            }
             if (ack) ack({ ok: true });
         } catch (err) {
             if (ack) ack({ ok: false, message: err?.message || 'Failed' });

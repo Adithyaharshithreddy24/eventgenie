@@ -50,6 +50,10 @@ const vendorSchema = new mongoose.Schema({
         type: String,
         enum: ['pending', 'accepted', 'rejected'],
         default: 'pending'
+    },
+    revenue: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true

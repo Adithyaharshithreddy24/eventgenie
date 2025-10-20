@@ -34,7 +34,11 @@ const customerSchema = new mongoose.Schema({
     bookedServiceIds: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Service'
-    }]
+    }],
+    expenditure: {
+        type: Number,
+        default: 0
+    }
 }, {
     timestamps: true
 });

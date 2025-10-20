@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import './style.css';
 import ServiceDetailsModal from "./ServiceDetailsModal.jsx";
 import PopupModal from "./PopupModal.jsx";
 import CustomerBookings from "./CustomerBookings.jsx";
+
 
 function renderStars(rating) {
     // Handle undefined, null, or NaN ratings
@@ -30,6 +32,7 @@ function renderStars(rating) {
 
 function Profile({ customer, logout, toggleService }) {
     const navigate = useNavigate();
+    const location = useLocation();
     const [editingProfile, setEditingProfile] = useState(false);
     const [editProfileData, setEditProfileData] = useState({
         name: customer?.name || '',
@@ -54,6 +57,35 @@ function Profile({ customer, logout, toggleService }) {
         message: '',
         type: 'info'
     });
+
+    // State for opening chat from notification deep-link
+    const [chatForNotification, setChatForNotification] = useState(null);
+
+    // Open chat automatically from notification deep-link
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const openChat = params.get('openChat');
+        const chatId = params.get('chatId');
+        const vendorId = params.get('vendorId');
+        const category = params.get('category') || 'Catering';
+        
+        if (openChat && customer?.id && vendorId) {
+            // Create a mock booking object to trigger chat opening
+            const mockBooking = {
+                _id: chatId || 'notification-chat',
+                vendorId: vendorId,
+                vendorName: 'Vendor', // Will be updated when chat loads
+                serviceCategory: category,
+                serviceName: `${category} Service`
+            };
+            setChatForNotification(mockBooking);
+            
+            // Refresh notifications
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('refreshNotifications'));
+            }, 500);
+        }
+    }, [location.search, customer?.id]);
 
     if (!customer) {
         navigate('/login');
@@ -599,7 +631,11 @@ function Profile({ customer, logout, toggleService }) {
                 </div>
 
                 <div className="past-bookings-section" style={{ marginTop: '40px' }}>
-                    <CustomerBookings customerId={customer.id} />
+                    <CustomerBookings 
+                        customerId={customer.id} 
+                        chatForNotification={chatForNotification}
+                        onChatClose={() => setChatForNotification(null)}
+                    />
 
                     <div className="bookings-container" style={{
                         background: '#fff',

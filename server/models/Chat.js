@@ -58,6 +58,14 @@ const chatSchema = new mongoose.Schema({
     lastMessageAt: {
         type: Date,
         default: Date.now
+    },
+    unreadCount: {
+        customer: { type: Number, default: 0 },
+        vendor: { type: Number, default: 0 }
+    },
+    lastReadAt: {
+        customer: { type: Date, default: null },
+        vendor: { type: Date, default: null }
     }
 }, {
     timestamps: true

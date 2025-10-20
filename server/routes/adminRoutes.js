@@ -214,7 +214,9 @@ router.get('/customers/:id', async (req, res) => {
 
         services.forEach(service => {
             service.bookings.forEach(booking => {
-                if (booking.customerUsername === customer.username) {
+                // Prefer matching by stored customerId; fallback to username if present
+                if ((booking.customerId && String(booking.customerId) === String(customer._id)) ||
+                    (booking.customerUsername && booking.customerUsername === customer.username)) {
                     customerBookings.push({
                         serviceId: service._id,
                         serviceName: service.name,
@@ -248,7 +250,11 @@ router.get('/vendors/:id', async (req, res) => {
         }
 
         // Get vendor's services
-        const services = await Service.find({ vendorUsername: vendor.username });
+        // In schema, services reference vendor via vendorUsername as ObjectId. Also support legacy username string.
+        const services = await Service.find({ $or: [
+            { vendorUsername: vendor._id },
+            { vendorUsername: vendor.username }
+        ] });
         
         // Get vendor's booking statistics
         let totalBookings = 0;
@@ -259,7 +265,8 @@ router.get('/vendors/:id', async (req, res) => {
         services.forEach(service => {
             service.bookings.forEach(booking => {
                 totalBookings++;
-                if (booking.status === 'confirmed') {
+                // Treat confirmed/completed/advance_paid as revenue-realized
+                if (booking.status === 'confirmed' || booking.status === 'completed' || booking.status === 'advance_paid') {
                     confirmedBookings++;
                     totalRevenue += booking.totalAmount || 0;
                 } else if (booking.status === 'pending') {
@@ -268,13 +275,24 @@ router.get('/vendors/:id', async (req, res) => {
             });
         });
 
+        // Prepare concise offered services list for modal rendering
+        const offeredServices = services.map(s => ({
+            _id: s._id,
+            name: s.name,
+            category: s.category,
+            price: s.price,
+            createdAt: s.createdAt
+        }));
+
         res.json({
             vendor,
             services: services.length,
             totalBookings,
             totalRevenue,
             pendingBookings,
-            confirmedBookings
+            confirmedBookings,
+            offeredServices,
+            storedRevenue: vendor.revenue || 0
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -3,6 +3,7 @@ const Chat = require('../models/Chat');
 const Customer = require('../models/Customer');
 const Vendor = require('../models/Vendor');
 const Admin = require('../models/Admin');
+const Notification = require('../models/Notification');
 
 const router = express.Router();
 
@@ -228,18 +229,112 @@ router.post('/:chatId/send', async (req, res) => {
             return res.status(400).json({ message: 'Sender does not belong to this chat' });
         }
 
-        chat.messages.push({
+        const newMessage = {
             senderModel,
             sender: senderId,
             receiverModel,
             receiver: receiverId,
             content: content.trim(),
             timestamp: new Date(),
-        });
+        };
+        chat.messages.push(newMessage);
         chat.lastMessageAt = new Date();
+        
+        // Update unread count for the receiver
+        if (receiverModel === 'Customer') {
+            chat.unreadCount.customer = (chat.unreadCount.customer || 0) + 1;
+        } else if (receiverModel === 'Vendor') {
+            chat.unreadCount.vendor = (chat.unreadCount.vendor || 0) + 1;
+        }
+        
         await chat.save();
 
+        // Create a notification for the opposite party
+        try {
+            // Determine recipient type for Notification model
+            let recipientType = null;
+            let recipientId = null;
+            let title = 'New Message';
+            let messageText = content.trim();
+            // Build action URL to deep-link into the correct dashboard
+            let actionUrl = '';
+
+            if (receiverModel === 'Customer') {
+                recipientType = 'customer';
+                recipientId = chat.customer;
+                title = 'New message from vendor';
+                actionUrl = `/customer/profile?openChat=1&chatId=${encodeURIComponent(chatId)}&vendorId=${encodeURIComponent(String(chat.vendor))}&category=${encodeURIComponent(chat.serviceCategory)}`;
+            } else if (receiverModel === 'Vendor') {
+                recipientType = 'vendor';
+                recipientId = chat.vendor;
+                title = 'New message from customer';
+                actionUrl = `/vendor/vendor-dashboard?openChat=1&chatId=${encodeURIComponent(chatId)}`;
+            }
+
+            if (recipientType && recipientId) {
+                const notif = new Notification({
+                    recipientId: recipientId,
+                    recipientType,
+                    type: 'chat_message',
+                    title,
+                    message: messageText,
+                    actionUrl,
+                    metadata: { chatId, senderModel, senderId, receiverModel, receiverId }
+                });
+                await notif.save();
+                console.log(`Created ${recipientType} notification for ${recipientId}:`, {
+                    title,
+                    message: messageText,
+                    actionUrl
+                });
+            } else {
+                console.log('No notification created - missing recipient info:', {
+                    recipientType,
+                    recipientId,
+                    receiverModel,
+                    chatCustomer: chat.customer,
+                    chatVendor: chat.vendor
+                });
+            }
+        } catch (e) {
+            // Non-fatal: notification failure should not break messaging
+            console.error('Failed to create chat notification:', e?.message || e);
+        }
+
         res.json({ message: 'Sent', chat });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Mark messages as read for a user
+router.put('/:chatId/read', async (req, res) => {
+    try {
+        const { chatId } = req.params;
+        const { userType, userId } = req.body; // userType: 'customer' or 'vendor'
+
+        const chat = await Chat.findById(chatId);
+        if (!chat) return res.status(404).json({ message: 'Chat not found' });
+
+        // Verify user belongs to this chat
+        if (userType === 'customer' && String(chat.customer) !== String(userId)) {
+            return res.status(400).json({ message: 'User does not belong to this chat' });
+        }
+        if (userType === 'vendor' && String(chat.vendor) !== String(userId)) {
+            return res.status(400).json({ message: 'User does not belong to this chat' });
+        }
+
+        // Reset unread count and update last read time
+        if (userType === 'customer') {
+            chat.unreadCount.customer = 0;
+            chat.lastReadAt.customer = new Date();
+        } else if (userType === 'vendor') {
+            chat.unreadCount.vendor = 0;
+            chat.lastReadAt.vendor = new Date();
+        }
+
+        await chat.save();
+        res.json({ message: 'Messages marked as read', chat });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

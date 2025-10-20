@@ -17,6 +17,7 @@ import AdminPortal from './AdminPortal.jsx';
 import NotificationSidebar from './NotificationSidebar.jsx';
 import HelpSupport from './HelpSupport.jsx';
 import Recommendations from './Recommendations.jsx';
+import { toast } from 'react-toastify';
 
 function App() {
   const [servicesList, setServicesList] = useState([]);
@@ -169,7 +170,7 @@ function App() {
           return true;
         } else {
           // For vendors, don't auto-login, just show success message
-          alert('Vendor registration successful! Please wait for admin approval before you can log in.');
+          toast.success('Vendor registration successful! Please wait for admin approval before you can log in.');
           return true;
         }
       } else {
@@ -240,12 +241,12 @@ function App() {
         const successMessage = successful.length === 1
           ? `Successfully created booking request for ${successful[0].value.booking.serviceName}!`
           : `Successfully created ${successful.length} booking requests!`;
-        alert(successMessage);
+          toast.success(successMessage);
       }
 
       if (failed.length > 0) {
         const errorMessages = failed.map(result => result.reason.message).join('\n');
-        alert(`Some bookings failed:\n${errorMessages}`);
+        toast.error(`Some bookings failed:\n${errorMessages}`);
       }
 
       setSelectedServices([]); // Clear cart after booking
@@ -261,7 +262,7 @@ function App() {
 
     } catch (error) {
       console.error('Booking error:', error);
-      alert('Booking failed. Please try again.');
+      toast.error('Booking failed. Please try again.');
     }
   };
 

@@ -5,7 +5,7 @@ import './CustomerBookings.css';
 import CustomerChat from './CustomerChat.jsx';
 import { API_ENDPOINTS } from './config/api';
 
-const CustomerBookings = ({ customerId }) => {
+const CustomerBookings = ({ customerId, chatForNotification, onChatClose }) => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState(null);
@@ -17,6 +17,13 @@ const CustomerBookings = ({ customerId }) => {
             fetchBookings();
         }
     }, [customerId]);
+
+    // Handle chat opening from notification
+    useEffect(() => {
+        if (chatForNotification) {
+            setChatForBooking(chatForNotification);
+        }
+    }, [chatForNotification]);
 
     const fetchBookings = async () => {
         try {
@@ -175,7 +182,10 @@ const CustomerBookings = ({ customerId }) => {
                                         customer={{ id: customerId }}
                                         vendor={{ id: b.vendorId, name: b.vendorName }}
                                         serviceCategory={b.serviceCategory || 'Catering'}
-                                        onClose={() => setChatForBooking(null)}
+                                        onClose={() => {
+                                            setChatForBooking(null);
+                                            if (onChatClose) onChatClose();
+                                        }}
                                     />
                                 </div>
 

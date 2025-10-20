@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import AdminDetailModal from './AdminDetailModal';
 import AdminChatMonitor from './AdminChatMonitor.jsx';
 import './admin-portal.css';
+import { toast } from 'react-toastify';
 
 function AdminPortal() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -17,6 +18,14 @@ function AdminPortal() {
     const [supportTickets, setSupportTickets] = useState([]);
     const [supportLoading, setSupportLoading] = useState(false);
     const [supportReply, setSupportReply] = useState('');
+
+    // Search filters per section
+    const [pendingSearch, setPendingSearch] = useState('');
+    const [vendorSearch, setVendorSearch] = useState('');
+    const [customerSearch, setCustomerSearch] = useState('');
+    const [serviceSearch, setServiceSearch] = useState('');
+    const [bookingSearch, setBookingSearch] = useState('');
+    const [supportSearch, setSupportSearch] = useState('');
 
     // Modal state
     const [modalOpen, setModalOpen] = useState(false);
@@ -137,13 +146,13 @@ function AdminPortal() {
             if (res.ok) {
                 setSupportReply('');
                 await fetchAllData();
-                alert('Reply sent');
+                toast.success('Reply sent');
             } else {
                 const err = await res.json();
-                alert(err.message || 'Failed to reply');
+                toast.error(err.message || 'Failed to reply');
             }
         } catch (e) {
-            alert('Failed to reply');
+            toast.error('Failed to reply');
         } finally {
             setSupportLoading(false);
         }
@@ -160,13 +169,13 @@ function AdminPortal() {
 
             if (response.ok) {
                 await fetchAllData();
-                alert('Vendor approved successfully!');
+                toast.success('Vendor approved successfully!');
             } else {
                 const errorData = await response.json();
-                alert(`Error: ${errorData.message}`);
+                toast.error(`Error: ${errorData.message}`);
             }
         } catch (error) {
-            alert('Error approving vendor. Please try again.');
+            toast.error('Error approving vendor. Please try again.');
         }
     };
 
@@ -182,13 +191,13 @@ function AdminPortal() {
 
             if (response.ok) {
                 await fetchAllData();
-                alert('Vendor rejected successfully!');
+                toast.success('Vendor rejected successfully!');
             } else {
                 const errorData = await response.json();
-                alert(`Error: ${errorData.message}`);
+                toast.error(`Error: ${errorData.message}`);
             }
         } catch (error) {
-            alert('Error rejecting vendor. Please try again.');
+            toast.error('Error rejecting vendor. Please try again.');
         }
     };
 
@@ -298,11 +307,29 @@ function AdminPortal() {
                 {activeTab === 'pending' && (
                     <div className="pending-vendors">
                         <h2>Pending Vendor Approvals</h2>
+                        <div style={{ margin: '12px 0' }}>
+                            <input
+                                value={pendingSearch}
+                                onChange={(e) => setPendingSearch(e.target.value)}
+                                placeholder="Search pending vendors (name, business, username)"
+                                style={{ width: '100%', padding: 8 }}
+                            />
+                        </div>
                         {pendingVendors.length === 0 ? (
                             <p className="no-vendors">No pending vendors to approve.</p>
                         ) : (
                             <div className="vendors-grid">
-                                {pendingVendors.map((vendor) => (
+                                {pendingVendors
+                                    .filter(v => {
+                                        const q = pendingSearch.trim().toLowerCase();
+                                        if (!q) return true;
+                                        return (
+                                            (v.businessName || '').toLowerCase().includes(q) ||
+                                            (v.name || '').toLowerCase().includes(q) ||
+                                            (v.username || '').toLowerCase().includes(q)
+                                        );
+                                    })
+                                    .map((vendor) => (
                                     <div key={vendor._id} className="vendor-card pending">
                                         <div className="vendor-header">
                                             <h3>{vendor.businessName}</h3>
@@ -343,6 +370,14 @@ function AdminPortal() {
                 {activeTab === 'vendors' && (
                     <div className="all-vendors">
                         <h2>All Vendors</h2>
+                        <div style={{ margin: '12px 0' }}>
+                            <input
+                                value={vendorSearch}
+                                onChange={(e) => setVendorSearch(e.target.value)}
+                                placeholder="Search vendors (business, owner, username, email, phone)"
+                                style={{ width: '100%', padding: 8 }}
+                            />
+                        </div>
                         {vendors.length === 0 ? (
                             <p className="no-vendors">No vendors found.</p>
                         ) : (
@@ -361,7 +396,19 @@ function AdminPortal() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {vendors.map((vendor) => (
+                                        {vendors
+                                            .filter(v => {
+                                                const q = vendorSearch.trim().toLowerCase();
+                                                if (!q) return true;
+                                                return (
+                                                    (v.businessName || '').toLowerCase().includes(q) ||
+                                                    (v.name || '').toLowerCase().includes(q) ||
+                                                    (v.username || '').toLowerCase().includes(q) ||
+                                                    (v.email || '').toLowerCase().includes(q) ||
+                                                    (v.phone || '').toLowerCase().includes(q)
+                                                );
+                                            })
+                                            .map((vendor) => (
                                             <tr key={vendor._id} className="clickable-row" onClick={() => openDetailModal('vendors', vendor._id)}>
                                                 <td>{vendor.businessName}</td>
                                                 <td>{vendor.name}</td>
@@ -410,6 +457,14 @@ function AdminPortal() {
                 {activeTab === 'customers' && (
                     <div className="all-customers">
                         <h2>All Customers</h2>
+                        <div style={{ margin: '12px 0' }}>
+                            <input
+                                value={customerSearch}
+                                onChange={(e) => setCustomerSearch(e.target.value)}
+                                placeholder="Search customers (name, username, email, phone, address)"
+                                style={{ width: '100%', padding: 8 }}
+                            />
+                        </div>
                         {customers.length === 0 ? (
                             <p className="no-vendors">No customers found.</p>
                         ) : (
@@ -427,7 +482,19 @@ function AdminPortal() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {customers.map((customer) => (
+                                        {customers
+                                            .filter(c => {
+                                                const q = customerSearch.trim().toLowerCase();
+                                                if (!q) return true;
+                                                return (
+                                                    (c.name || '').toLowerCase().includes(q) ||
+                                                    (c.username || '').toLowerCase().includes(q) ||
+                                                    (c.email || '').toLowerCase().includes(q) ||
+                                                    (c.phone || '').toLowerCase().includes(q) ||
+                                                    (c.address || '').toLowerCase().includes(q)
+                                                );
+                                            })
+                                            .map((customer) => (
                                             <tr key={customer._id} className="clickable-row" onClick={() => openDetailModal('customers', customer._id)}>
                                                 <td>{customer.name}</td>
                                                 <td>{customer.username}</td>
@@ -450,6 +517,14 @@ function AdminPortal() {
                 {activeTab === 'services' && (
                     <div className="all-services">
                         <h2>All Services</h2>
+                        <div style={{ margin: '12px 0' }}>
+                            <input
+                                value={serviceSearch}
+                                onChange={(e) => setServiceSearch(e.target.value)}
+                                placeholder="Search services (name, provider, category, vendor)"
+                                style={{ width: '100%', padding: 8 }}
+                            />
+                        </div>
                         {services.length === 0 ? (
                             <p className="no-vendors">No services found.</p>
                         ) : (
@@ -467,7 +542,18 @@ function AdminPortal() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {services.map((service) => (
+                                        {services
+                                            .filter(s => {
+                                                const q = serviceSearch.trim().toLowerCase();
+                                                if (!q) return true;
+                                                return (
+                                                    (s.name || '').toLowerCase().includes(q) ||
+                                                    (s.provider || '').toLowerCase().includes(q) ||
+                                                    (s.category || '').toLowerCase().includes(q) ||
+                                                    ((s.vendorUsername?.businessName || s.vendorUsername?.name || '') + '').toLowerCase().includes(q)
+                                                );
+                                            })
+                                            .map((service) => (
                                             <tr key={service._id} className="clickable-row" onClick={() => openDetailModal('services', service._id)}>
                                                 <td>{service.name}</td>
                                                 <td>{service.provider}</td>
@@ -490,6 +576,14 @@ function AdminPortal() {
                 {activeTab === 'bookings' && (
                     <div className="all-bookings">
                         <h2>All Bookings</h2>
+                        <div style={{ margin: '12px 0' }}>
+                            <input
+                                value={bookingSearch}
+                                onChange={(e) => setBookingSearch(e.target.value)}
+                                placeholder="Search bookings (service, category, vendor, customer, status)"
+                                style={{ width: '100%', padding: 8 }}
+                            />
+                        </div>
                         {bookings.length === 0 ? (
                             <p className="no-vendors">No bookings found.</p>
                         ) : (
@@ -509,7 +603,19 @@ function AdminPortal() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {bookings.map((booking) => (
+                                        {bookings
+                                            .filter(b => {
+                                                const q = bookingSearch.trim().toLowerCase();
+                                                if (!q) return true;
+                                                return (
+                                                    (b.serviceName || '').toLowerCase().includes(q) ||
+                                                    (b.serviceCategory || '').toLowerCase().includes(q) ||
+                                                    (b.vendorBusinessName || '').toLowerCase().includes(q) ||
+                                                    (b.customerName || '').toLowerCase().includes(q) ||
+                                                    (b.status || '').toLowerCase().includes(q)
+                                                );
+                                            })
+                                            .map((booking) => (
                                             <tr key={booking.id} className="clickable-row" onClick={() => openDetailModal('bookings', booking.id, booking)}>
                                                 <td>{booking.serviceName}</td>
                                                 <td>{booking.serviceCategory}</td>
@@ -538,6 +644,14 @@ function AdminPortal() {
                 {activeTab === 'support' && (
                     <div className="all-support">
                         <h2>Help & Support Tickets</h2>
+                        <div style={{ margin: '12px 0' }}>
+                            <input
+                                value={supportSearch}
+                                onChange={(e) => setSupportSearch(e.target.value)}
+                                placeholder="Search tickets (type, user, subject, status, message)"
+                                style={{ width: '100%', padding: 8 }}
+                            />
+                        </div>
                         {supportTickets.length === 0 ? (
                             <p className="no-vendors">No tickets found.</p>
                         ) : (
@@ -555,12 +669,24 @@ function AdminPortal() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {supportTickets.map((t) => (
+                                        {supportTickets
+                                            .filter(t => {
+                                                const q = supportSearch.trim().toLowerCase();
+                                                if (!q) return true;
+                                                return (
+                                                    (t.type || '').toLowerCase().includes(q) ||
+                                                    (t.userType || '').toLowerCase().includes(q) ||
+                                                    (t.subject || '').toLowerCase().includes(q) ||
+                                                    (t.status || '').toLowerCase().includes(q) ||
+                                                    (t.message || '').toLowerCase().includes(q)
+                                                );
+                                            })
+                                            .map((t) => (
                                             <tr key={t._id}>
-                                                <td>{t.type}</td>
-                                                <td>{t.userType}</td>
-                                                <td>{t.subject}</td>
-                                                <td>{t.status}</td>
+                                                <td title={(t.message || '').trim() || undefined}>{t.type}</td>
+                                                <td title={(t.message || '').trim() || undefined}>{t.userType}</td>
+                                                <td title={(t.message || '').trim() || undefined}>{t.subject}</td>
+                                                <td title={(t.message || '').trim() || undefined}>{t.status}</td>
                                                 <td>{new Date(t.createdAt).toLocaleString()}</td>
                                                 <td>{Array.isArray(t.replies) ? t.replies.length : 0}</td>
                                                 <td>

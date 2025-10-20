@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import './HelpSupport.css';
 import { API_ENDPOINTS } from './config/api';
+import { toast } from 'react-toastify';
 
 export default function HelpSupport({ user, userType }) {
     const [step, setStep] = useState(0); // 0:type, 1:subject, 2:message, 3:confirm
@@ -33,7 +34,7 @@ export default function HelpSupport({ user, userType }) {
     };
 
     const submit = async () => {
-        if (!user?.id) return alert('Please login first');
+        if (!user?.id) return toast.warn('Please login first');
         if (!mode || !subject.trim() || !message.trim()) return;
         setSubmitting(true);
         try {
@@ -51,14 +52,14 @@ export default function HelpSupport({ user, userType }) {
             if (res.ok) {
                 await loadMyTickets();
                 resetFlow();
-                alert('Submitted successfully');
+                toast.success('Submitted successfully');
             } else {
                 const err = await res.json();
-                alert(err.message || 'Submission failed');
+                toast.error(err.message || 'Submission failed');
             }
         } catch (e) {
             console.error('Submit failed', e);
-            alert('Submission failed');
+            toast.error('Submission failed');
         } finally {
             setSubmitting(false);
         }

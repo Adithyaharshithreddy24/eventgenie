@@ -79,7 +79,7 @@ function AdminDetailModal({ isOpen, onClose, entityType, entityId, entityData })
                                         <th>Booked For</th>
                                         <th>Booked On</th>
                                         <th>Status</th>
-                                        <th>Amount</th>
+                                        <th>Price</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -95,7 +95,7 @@ function AdminDetailModal({ isOpen, onClose, entityType, entityId, entityData })
                                                     {booking.status}
                                                 </span>
                                             </td>
-                                            <td>₹{booking.totalAmount}</td>
+                                            <td>₹{booking.servicePrice}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -105,13 +105,26 @@ function AdminDetailModal({ isOpen, onClose, entityType, entityId, entityData })
                         <p className="no-data">No bookings found</p>
                     )}
                 </div>
+                <div className="detail-section">
+                    <h3>Customer Statistics</h3>
+                    <div className="stats-grid">
+                        <div className="stat-item">
+                            <label>Total Bookings:</label>
+                            <span className="stat-value">{bookings.length}</span>
+                        </div>
+                        <div className="stat-item">
+                            <label>Total Expenditure (stored):</label>
+                            <span className="stat-value revenue">₹{customer.expenditure || 0}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     };
 
     const renderVendorDetails = () => {
         if (!details) return null;
-        const { vendor, services, totalBookings, totalRevenue, pendingBookings, confirmedBookings } = details;
+        const { vendor, services, totalBookings, totalRevenue, pendingBookings, confirmedBookings, offeredServices, storedRevenue } = details;
 
         return (
             <div className="entity-details">
@@ -177,11 +190,43 @@ function AdminDetailModal({ isOpen, onClose, entityType, entityId, entityData })
                             <span className="stat-value pending">{pendingBookings}</span>
                         </div>
                         <div className="stat-item">
-                            <label>Total Revenue:</label>
+                            <label>Total Revenue (computed):</label>
                             <span className="stat-value revenue">₹{totalRevenue}</span>
+                        </div>
+                        <div className="stat-item">
+                            <label>Revenue (stored):</label>
+                            <span className="stat-value revenue">₹{storedRevenue}</span>
                         </div>
                     </div>
                 </div>
+
+                {Array.isArray(offeredServices) && offeredServices.length > 0 && (
+                    <div className="detail-section">
+                        <h3>Services Offered</h3>
+                        <div className="bookings-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {offeredServices.map((s) => (
+                                        <tr key={s._id}>
+                                            <td>{s.name}</td>
+                                            <td>{s.category}</td>
+                                            <td>₹{s.price}</td>
+                                            <td>{s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     };

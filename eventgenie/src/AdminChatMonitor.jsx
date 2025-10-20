@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { API_ENDPOINTS } from './config/api';
 import { io } from 'socket.io-client';
-
+import { toast } from 'react-toastify';
 export default function AdminChatMonitor() {
     const [chats, setChats] = useState([]);
     const [active, setActive] = useState(null);
@@ -165,11 +165,11 @@ export default function AdminChatMonitor() {
                                 className="btn secondary-btn"
                                 onClick={async () => {
                                     if (!adminId) {
-                                        alert('No admin ID found. Please login again.');
+                                        toast.error('No admin ID found. Please login again.');
                                         return;
                                     }
                                     if (!active?._id) {
-                                        alert('No chat selected');
+                                        toast.warn('No chat selected');
                                         return;
                                     }
                                     const url = API_ENDPOINTS.CHAT_ADMIN_JOIN(active._id);
@@ -190,13 +190,13 @@ export default function AdminChatMonitor() {
                                                 params.set('chat', active._id);
                                                 window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
                                             } catch { }
-                                            alert('Joined chat successfully (staying on this page to monitor live).');
+                                            toast.info('Joined chat successfully (staying on this page to monitor live).');
                                         } else {
                                             const err = await res.json();
-                                            alert('Failed to join: ' + (err.message || 'Unknown error'));
+                                            toast.error('Failed to join: ' + (err.message || 'Unknown error'));
                                         }
                                     } catch (e) {
-                                        alert('Failed to join chat: ' + e.message);
+                                        toast.error('Failed to join chat: ' + e.message);
                                     }
                                 }}
                             >
@@ -207,11 +207,11 @@ export default function AdminChatMonitor() {
                                 className="btn secondary-btn"
                                 onClick={async () => {
                                     if (!adminId) {
-                                        alert('No admin ID found. Please login again.');
+                                        toast.error('No admin ID found. Please login again.');
                                         return;
                                     }
                                     if (!active?._id) {
-                                        alert('No chat selected');
+                                        toast.warn('No chat selected');
                                         return;
                                     }
                                     const url = API_ENDPOINTS.CHAT_ADMIN_AUTO_MESSAGE(active._id);
@@ -226,14 +226,14 @@ export default function AdminChatMonitor() {
 
                                         if (res.ok) {
                                             if (socketRef.current) socketRef.current.emit('joinConversation', { chatId: active._id });
-                                            alert('Auto message sent');
+                                            toast.success('Auto message sent');
                                             window.location.reload();
                                         } else {
                                             const err = await res.json();
-                                            alert('Failed to send auto message: ' + (err.message || 'Unknown error'));
+                                            toast.error('Failed to send auto message: ' + (err.message || 'Unknown error'));
                                         }
                                     } catch (e) {
-                                        alert('Failed to send auto message: ' + e.message);
+                                    toast.error('Failed to send auto message: ' + e.message);
                                     }
                                 }}
                             >

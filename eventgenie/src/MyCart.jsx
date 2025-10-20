@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import BudgetCalculator from './BudgetCalculator.jsx';
 import './style.css';
 import ServiceDetailsModal from "./ServiceDetailsModal.jsx";
+import { toast } from "react-toastify";
 
 function renderStars(rating) {
     // Handle undefined, null, or NaN ratings
@@ -75,7 +76,7 @@ function MyCart({ selectedServices, clearSelectedServices, isLoggedIn, addBookin
             const selectedDate = selectedServices[0]?.selectedDate || null;
             addBooking(selectedServices, selectedDate);
             clearSelectedServices();
-            setShowPopup(true);
+            //setShowPopup(true);
         }
     };
 
@@ -261,15 +262,6 @@ function MyCart({ selectedServices, clearSelectedServices, isLoggedIn, addBookin
                 selectedDate={selectedServices[0]?.selectedDate || null}
             />
 
-            {showPopup && (
-                <div className="popup-overlay">
-                    <div className="popup-content">
-                        <h3>Congratulations!</h3>
-                        <p>Your booking is accepted!</p>
-                        <button className="btn primary-btn" onClick={() => setShowPopup(false)}>Close</button>
-                    </div>
-                </div>
-            )}
         </section>
     );
 }

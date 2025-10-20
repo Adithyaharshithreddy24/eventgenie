@@ -187,7 +187,7 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
 
             if (response.ok) {
                 setEditingProfile(false);
-                alert('Profile updated successfully!');
+                toast.success('Profile updated successfully!');
                 // Update the vendor data in parent component
                 Object.assign(vendor, updateData);
                 // Clear password field
@@ -207,14 +207,14 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         if (!form.name || !form.category || !form.price || !form.description || !form.address) {
-            alert('Please fill all required fields');
+            toast.warn('Please fill all required fields');
             return;
         }
 
         // Validate images array
         const validImages = form.images.filter(img => img.trim() !== '');
         if (validImages.length === 0) {
-            alert('At least one image is required');
+            toast.warn('At least one image is required');
             return;
         }
 
@@ -280,7 +280,7 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
                 });
                 setEditServiceId(null);
                 setVendorTab('services');
-                alert(editServiceId ? 'Service updated successfully!' : 'Service created successfully!');
+                toast.success(editServiceId ? 'Service updated successfully!' : 'Service created successfully!');
             } else {
                 const errorData = await response.json();
                 setError(errorData.message || 'Failed to save service');
@@ -325,7 +325,7 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
 
             if (response.ok) {
                 setServicesList(prev => prev.filter(s => s._id !== id));
-                alert('Service deleted successfully!');
+                toast.success('Service deleted successfully!');
             } else {
                 const errorData = await response.json();
                 setError(errorData.message || 'Failed to delete service');

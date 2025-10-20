@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { API_ENDPOINTS } from './config/api';
 import { io } from 'socket.io-client';
 
@@ -7,6 +8,7 @@ export default function VendorChat({ vendor }) {
     const [active, setActive] = useState(null);
     const [message, setMessage] = useState('');
     const socketRef = useRef(null);
+    const location = useLocation();
 
     const load = async () => {
         if (!vendor?.id) return;
@@ -52,6 +54,19 @@ export default function VendorChat({ vendor }) {
         }
     };
 
+    // Mark messages as read when chat becomes active
+    const markAsRead = async (chatId) => {
+        try {
+            await fetch(API_ENDPOINTS.CHAT_SEND(chatId).replace('/send', '/read'), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userType: 'vendor', userId: vendor.id })
+            });
+        } catch (error) {
+            console.error('Failed to mark messages as read:', error);
+        }
+    };
+
     const joinActiveRoom = () => {
         if (socketRef.current && active?._id) {
             socketRef.current.emit('joinConversation', { chatId: active._id });
@@ -59,6 +74,24 @@ export default function VendorChat({ vendor }) {
     };
 
     useEffect(() => { joinActiveRoom(); }, [active?._id]);
+
+    // Mark messages as read when chat becomes active
+    useEffect(() => {
+        if (active?._id) {
+            markAsRead(active._id);
+        }
+    }, [active?._id]);
+
+    // Auto-open chat from URL params (notification deep link)
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const openChat = params.get('openChat');
+        const chatId = params.get('chatId');
+        if (openChat && chatId && chats?.length) {
+            const target = chats.find(c => String(c._id) === String(chatId));
+            if (target) setActive(target);
+        }
+    }, [location.search, chats?.length]);
 
     useEffect(() => () => { if (socketRef.current) { socketRef.current.disconnect(); socketRef.current = null; } }, []);
 
@@ -79,7 +112,12 @@ export default function VendorChat({ vendor }) {
                         className={`chat-item ${active?._id === c._id ? 'active' : ''}`}
                         onClick={() => setActive(c)}
                     >
-                        <div className="title">{getCustomerName(c)}</div>
+                        <div className="title">
+                            {getCustomerName(c)}
+                            {c.unreadCount?.vendor > 0 && (
+                                <span className="unread-badge">{c.unreadCount.vendor}</span>
+                            )}
+                        </div>
                         <div className="time">{new Date(c.lastMessageAt).toLocaleString()}</div>
                     </div>
                 ))}

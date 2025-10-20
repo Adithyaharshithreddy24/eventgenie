@@ -379,6 +379,22 @@ router.post('/:bookingId/verify-payment-by-vendor', async (req, res) => {
                 await service.save();
             }
 
+            // Update vendor revenue and customer expenditure
+            try {
+                const vendor = await Vendor.findById(booking.vendorId);
+                const customer = await Customer.findById(booking.customerId);
+                if (vendor) {
+                    vendor.revenue = (vendor.revenue || 0) + (booking.advanceAmount || 0);
+                    await vendor.save();
+                }
+                if (customer) {
+                    customer.expenditure = (customer.expenditure || 0) + (booking.advanceAmount || 0);
+                    await customer.save();
+                }
+            } catch (e) {
+                console.error('Failed to update revenue/expenditure on advance verification:', e?.message || e);
+            }
+
             // Create notification for customer
             const customerNotification = new Notification({
                 recipientId: booking.customerId,

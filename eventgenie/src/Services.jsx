@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from 'react-router-dom';
 import "./style.css";
 import ServiceDetailsModal from "./ServiceDetailsModal.jsx";
+import { toast } from "react-toastify";
 
 function renderStars(rating) {
     // Handle undefined, null, or NaN ratings
@@ -32,7 +33,7 @@ function Services({ selectedServices, toggleService }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
-    const [priceRange, setPriceRange] = useState([0, 200000000]);
+    const [priceRange, setPriceRange] = useState([0, 200000]);
     const [ratingRange, setRatingRange] = useState([0, 5]);
     const [foodType, setFoodType] = useState('all');
     const [selectedService, setSelectedService] = useState(null);
@@ -269,7 +270,7 @@ function Services({ selectedServices, toggleService }) {
         // Check if the service is available for the selected date
         // Fix: Check for both false and undefined/not set values
         if (service.isAvailable === false || service.isAvailable === undefined) {
-            alert(`${service.name} is not available for ${new Date(selectedDate).toLocaleDateString('en-US', {
+            toast.info(`${service.name} is not available for ${new Date(selectedDate).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -279,7 +280,7 @@ function Services({ selectedServices, toggleService }) {
 
         // Additional safety check: if we have a selected date, ensure the service is actually available
         if (selectedDate && service.isAvailable !== true) {
-            alert(`${service.name} availability cannot be determined. Please refresh the page and try again.`);
+            toast.info(`${service.name} availability cannot be determined. Please refresh the page and try again.`);
             return;
         }
 
@@ -518,8 +519,8 @@ function Services({ selectedServices, toggleService }) {
                                 <input
                                     type="range"
                                     min={0}
-                                    max={200000000}
-                                    step={500}
+                                    max={1000000}
+                                    step={50}
                                     value={priceRange[0]}
                                     onChange={e => handlePriceChange(e, 0)}
                                     style={{ width: '100%' }}
@@ -529,8 +530,8 @@ function Services({ selectedServices, toggleService }) {
                                 <input
                                     type="range"
                                     min={0}
-                                    max={200000000}
-                                    step={500}
+                                    max={1000000}
+                                    step={50}
                                     value={priceRange[1]}
                                     onChange={e => handlePriceChange(e, 1)}
                                     style={{ width: '100%' }}
@@ -582,26 +583,7 @@ function Services({ selectedServices, toggleService }) {
                     {/* Right Content Area */}
                     <div style={{ flex: 1 }}>
                         {/* Date Selection Notice */}
-                        {!selectedDate && (
-                            <div style={{
-                                background: '#fff3cd',
-                                border: '1px solid #ffeaa7',
-                                borderRadius: '8px',
-                                padding: '16px',
-                                marginBottom: '24px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px'
-                            }}>
-                                <i className="fas fa-info-circle" style={{ color: '#856404', fontSize: '1.1rem' }}></i>
-                                <div>
-                                    <strong style={{ color: '#856404' }}>Select Event Date:</strong>
-                                    <span style={{ color: '#856404', marginLeft: '8px' }}>
-                                        Choose a date in the sidebar to see available services and add them to your cart.
-                                    </span>
-                                </div>
-                            </div>
-                        )}
+                        
 
                         {/* Loading State */}
                         {loading && (
@@ -824,17 +806,32 @@ function Services({ selectedServices, toggleService }) {
                                                             )}
 
                                                             {/* Add to Cart Button */}
+                                                            
                                                             {isAvailable && (
                                                                 <button
                                                                     className="btn primary-btn"
                                                                     style={{ width: '100%', marginTop: 4, padding: '12px', fontSize: '1rem', fontWeight: '500' }}
                                                                     onClick={(e) => {
+                                                                        {!selectedDate && (
+                        <div>
+                            {toast.error('Choose a date in the sidebar to see available services and add them to your cart.')}
+                            </div>
+                        )}
                                                                         e.stopPropagation();
                                                                         handleAddToCart(service);
                                                                     }}
                                                                 >
-                                                                    <i className="fas fa-cart-plus" style={{ marginRight: '8px' }}></i>
-                                                                    Add to Cart
+                                                                    <i
+                                                                        className={`fas ${
+                                                                        selectedServices.some(s => s._id === service._id)
+                                                                            ? 'fa-times'
+                                                                            : 'fa-cart-plus'
+                                                                        }`}
+                                                                        style={{ marginRight: '8px' }}
+                                                                    ></i>
+                                                                    {selectedServices.some(s => s._id === service._id)
+                                                                        ? 'Remove'
+                                                                        : 'Add to Cart'}
                                                                 </button>
                                                             )}
 
