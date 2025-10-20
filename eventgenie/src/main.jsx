@@ -16,6 +16,7 @@ import VendorDashboard from './VendorDashboard.jsx';
 import AdminPortal from './AdminPortal.jsx';
 import NotificationSidebar from './NotificationSidebar.jsx';
 import HelpSupport from './HelpSupport.jsx';
+import Recommendations from './Recommendations.jsx';
 
 function App() {
   const [servicesList, setServicesList] = useState([]);
@@ -192,6 +193,7 @@ function App() {
     localStorage.removeItem('customerSession');
     localStorage.removeItem('vendorSession');
     localStorage.removeItem('cartSession'); // Clear cart from localStorage
+    try { localStorage.removeItem('recommendationsResults'); } catch {}
     navigate('/');
   };
 
@@ -345,6 +347,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/services" element={<Services selectedServices={selectedServices} toggleService={toggleService} />} />
+        <Route path="/recommendations" element={<Recommendations toggleService={toggleService} selectedServices={selectedServices} />} />
         <Route path="/budget-calculator" element={<BudgetCalculator selectedServices={selectedServices} clearSelectedServices={clearSelectedServices} isLoggedIn={isLoggedIn} />} />
         <Route path="/login" element={<LoginRegister login={login} register={register} isLoggedIn={isLoggedIn} isVendorLoggedIn={isVendorLoggedIn} />} />
         <Route path="/profile" element={<Profile customer={currentCustomer} logout={logout} toggleService={toggleService} />} />

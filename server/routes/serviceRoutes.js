@@ -2,6 +2,122 @@ const express = require('express');
 const router = express.Router();
 const Service = require('../models/Service');
 
+// Utility to compute average rating safely
+function getAverageRatingFromService(service) {
+    if (!service || !service.reviews || service.reviews.length === 0) return 0;
+    const total = service.reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
+    return total / service.reviews.length;
+}
+
+// Recommendations: compute optimal combinations based on requested categories, budget, and rating
+router.post('/recommendations', async (req, res) => {
+    try {
+        const { categories = [], budget, minRating = 0, date } = req.body || {};
+
+        if (!Array.isArray(categories) || categories.length === 0) {
+            return res.status(400).json({ message: 'categories must be a non-empty array' });
+        }
+        if (typeof budget !== 'number' || isNaN(budget) || budget <= 0) {
+            return res.status(400).json({ message: 'budget must be a positive number' });
+        }
+
+        // Fetch services that match any of the requested categories first
+        const rawServices = await Service.find({ category: { $in: categories } });
+
+        // Pre-filter by rating and availability if date provided
+        const services = rawServices.filter(s => {
+            const avg = getAverageRatingFromService(s);
+            if (avg < minRating) return false;
+            if (!date) return true;
+            const isBooked = s.bookings && s.bookings.some(b => b.bookedForDate === date && b.status !== 'cancelled');
+            const isBlocked = s.blockedDates && s.blockedDates.includes(date);
+            return !isBooked && !isBlocked;
+        });
+
+        // Group by category
+        const categoryToServices = categories.reduce((acc, cat) => {
+            acc[cat] = [];
+            return acc;
+        }, {});
+
+        for (const s of services) {
+            if (categoryToServices[s.category]) {
+                categoryToServices[s.category].push(s);
+            }
+        }
+
+        // Ensure every requested category has at least one option
+        for (const cat of categories) {
+            if (!categoryToServices[cat] || categoryToServices[cat].length === 0) {
+                return res.json({ combinations: [], reason: `No services available for category: ${cat}` });
+            }
+        }
+
+        // Sort each category list by a heuristic: higher rating first, lower price next
+        for (const cat of categories) {
+            categoryToServices[cat].sort((a, b) => {
+                const ra = getAverageRatingFromService(a);
+                const rb = getAverageRatingFromService(b);
+                if (rb !== ra) return rb - ra;
+                return a.price - b.price;
+            });
+            // Cap to avoid combinatorial explosion
+            categoryToServices[cat] = categoryToServices[cat].slice(0, 12);
+        }
+
+        // DFS to build one-per-category combinations under budget
+        const results = [];
+        const cats = [...categories];
+
+        function dfs(index, picked, totalPrice, totalRating) {
+            if (totalPrice > budget) return; // prune
+            if (index === cats.length) {
+                const avgRating = cats.length > 0 ? totalRating / cats.length : 0;
+                // Score: prioritize higher rating, then closeness to budget
+                const budgetUtilization = totalPrice / budget; // 0..1
+                const score = avgRating * 1000 + budgetUtilization; // rating dominates
+                results.push({
+                    serviceIds: picked.map(p => p._id),
+                    services: picked.map(p => ({
+                        _id: p._id,
+                        name: p.name,
+                        category: p.category,
+                        price: p.price,
+                        averageRating: getAverageRatingFromService(p),
+                        images: p.images,
+                        // availability for the requested date; we already filtered unavailable out when date provided
+                        isAvailable: date ? true : undefined,
+                        availabilityStatus: date ? 'Available' : 'Date not selected'
+                    })),
+                    totalPrice,
+                    averageRating: avgRating,
+                    score
+                });
+                return;
+            }
+            const cat = cats[index];
+            const options = categoryToServices[cat] || [];
+            for (const svc of options) {
+                dfs(index + 1, [...picked, svc], totalPrice + (svc.price || 0), totalRating + getAverageRatingFromService(svc));
+            }
+        }
+
+        dfs(0, [], 0, 0);
+
+        // Sort results by score descending, then by lower price
+        results.sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            return a.totalPrice - b.totalPrice;
+        });
+
+        const top = results.slice(0, 5);
+        return res.json({ combinations: top });
+    } catch (error) {
+        console.error('Error computing recommendations:', error);
+        return res.status(500).json({ message: 'Failed to compute recommendations' });
+    }
+});
+
 // Get all services with filtering
 router.get('/', async (req, res) => {
     try {

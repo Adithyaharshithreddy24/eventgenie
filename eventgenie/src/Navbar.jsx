@@ -125,6 +125,7 @@ function Navbar({ isLoggedIn, isVendorLoggedIn, currentCustomer, currentVendor, 
                             <>
                                 <li><NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink></li>
                                 <li><NavLink to="/services" className={({ isActive }) => isActive ? 'active' : ''}>Services</NavLink></li>
+                                <li><NavLink to="/recommendations" className={({ isActive }) => isActive ? 'active' : ''}>Recommendations</NavLink></li>
                                 <li>
                                     <NavLink to="/mycart" className={({ isActive }) => isActive ? 'active' : ''}>
                                         MyCart
@@ -164,6 +165,7 @@ function Navbar({ isLoggedIn, isVendorLoggedIn, currentCustomer, currentVendor, 
                             <>
                                 <li><NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink></li>
                                 <li><NavLink to="/services" className={({ isActive }) => isActive ? 'active' : ''}>Services</NavLink></li>
+                                <li><NavLink to="/recommendations" className={({ isActive }) => isActive ? 'active' : ''}>Recommendations</NavLink></li>
                                 <li><NavLink to="/budget-calculator" className={({ isActive }) => isActive ? 'active' : ''}>Budget Calculator</NavLink></li>
                                 <NavLink to="/login" className={({ isActive }) => isActive ? 'btn btn-primary hover-effect active-login' : 'btn btn-primary hover-effect'}>Login/Register</NavLink>
                             </>

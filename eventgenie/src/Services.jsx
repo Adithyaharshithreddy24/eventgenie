@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from 'react-router-dom';
 import "./style.css";
 import ServiceDetailsModal from "./ServiceDetailsModal.jsx";
 
@@ -26,6 +27,7 @@ function renderStars(rating) {
 }
 
 function Services({ selectedServices, toggleService }) {
+    const location = useLocation();
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -122,13 +124,16 @@ function Services({ selectedServices, toggleService }) {
         }
     };
 
-    // Initial load - fetch all services
+    // Initial load - fetch all services, apply preselection if navigated with state
     useEffect(() => {
-        if (isInitialLoadRef.current) {
-            fetchServices();
-            isInitialLoadRef.current = false;
+        if (!isInitialLoadRef.current) return;
+        const preselect = location.state?.preselect;
+        if (preselect?.date) {
+            setSelectedDate(preselect.date);
         }
-    }, []);
+        fetchServices();
+        isInitialLoadRef.current = false;
+    }, [location.state]);
 
     // Apply filters with debouncing
     useEffect(() => {
@@ -168,6 +173,24 @@ function Services({ selectedServices, toggleService }) {
             }
         };
     }, []);
+
+    // After services are loaded, if there is a preselect list, mark them in the cart
+    useEffect(() => {
+        const preselect = location.state?.preselect;
+        if (!preselect || !Array.isArray(services) || services.length === 0) return;
+        const { serviceIds = [] } = preselect;
+        if (!Array.isArray(serviceIds) || serviceIds.length === 0) return;
+
+        const toAdd = services.filter(s => serviceIds.includes(s._id));
+        if (toAdd.length === 0) return;
+
+        // Ensure selected date is attached if present
+        const itemsWithDate = toAdd.map(s => ({ ...s, selectedDate }));
+        itemsWithDate.forEach(item => toggleService(item));
+        // Clear navigation state to avoid re-adding on further renders
+        window.history.replaceState({}, document.title, window.location.pathname);
+        // eslint-disable-next-line
+    }, [services]);
 
     // Calculate average rating for services
     const getAverageRating = (service) => {
