@@ -102,6 +102,22 @@ export default function VendorChat({ vendor }) {
     };
     const formatTime = (timestamp) => new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+    const textareaRef = useRef(null);
+    const maxRows = 5;
+
+    const adjustHeight = () => {
+        const ta = textareaRef.current;
+        if (ta) {
+            ta.rows = 1; // reset to calculate scrollHeight
+            const lineHeight = 24; // approximate line height in px (adjust as needed)
+            const newRows = Math.min(Math.floor(ta.scrollHeight / lineHeight), maxRows);
+            ta.rows = newRows;
+        }
+    };
+
+    useEffect(() => {
+        adjustHeight();
+    }, [message]);
 
     return (
         <div className="vendor-chat">
@@ -144,25 +160,46 @@ export default function VendorChat({ vendor }) {
                                             : 'them'
                                         }`}
                                 >
-                                    <div className="bubble">{m.content}
+                                    <div className="bubble" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.content}
                                         <div className="meta" style={{ float: 'right' }}>{formatTime(m.timestamp)}</div>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="chat-input-row">
-                            <input
+                        <div className="chat-input-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <textarea
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && send()}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        if (!e.shiftKey) {
+                                            e.preventDefault(); // Prevent newline
+                                            send(); // Send message
+                                        }
+                                        // If shiftKey is pressed, do nothing → default inserts newline
+                                    }
+                                }}
                                 placeholder="Type a message"
+                                rows={Math.min(5, message.split('\n').length)}
+                                style={{
+                                    width: '100%',
+                                    resize: 'none',
+                                    padding: '8px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #ccc',
+                                    minHeight: '30px',
+                                    fontSize: '14px',
+                                    lineHeight: '1.4'
+                                }}
                             />
+
+
                             <button
                                 onClick={send}
                                 className="primary-btn"
                                 style={{
-                                    backgroundColor: '#6a11cb',
+                                    backgroundColor: '#6a11cb', // WhatsApp-style
                                     border: 'none',
                                     borderRadius: '50%',
                                     width: '45px',
@@ -180,6 +217,7 @@ export default function VendorChat({ vendor }) {
                                 <i className="fas fa-paper-plane" style={{ color: 'white', fontSize: '18px' }}></i>
                             </button>
                         </div>
+
                     </>
                 )}
             </div>

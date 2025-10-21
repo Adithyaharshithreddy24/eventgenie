@@ -1150,7 +1150,7 @@ footer {
   box-shadow: 0 6px 20px var(--shadow-color);
   display: flex;
   flex-direction: column;
-  height: 75vh;
+  height: max(75vh, auto-fit);
   width: 100%;
   overflow: hidden;
 }

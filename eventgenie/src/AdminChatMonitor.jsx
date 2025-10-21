@@ -137,6 +137,8 @@ export default function AdminChatMonitor() {
                                                 padding: '8px 12px',
                                                 borderRadius: 10,
                                                 marginBottom: 4,
+                                                whiteSpace: 'pre-wrap',
+                                                wordBreak: 'break-word',
                                                 backgroundColor:
                                                     m.senderModel === 'Admin'
                                                         ? '#d1e7dd'
@@ -233,7 +235,7 @@ export default function AdminChatMonitor() {
                                             toast.error('Failed to send auto message: ' + (err.message || 'Unknown error'));
                                         }
                                     } catch (e) {
-                                    toast.error('Failed to send auto message: ' + e.message);
+                                        toast.error('Failed to send auto message: ' + e.message);
                                     }
                                 }}
                             >
