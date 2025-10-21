@@ -41,6 +41,7 @@ function Services({ selectedServices, toggleService }) {
     const [selectedDate, setSelectedDate] = useState('');
     const [showDatePopup, setShowDatePopup] = useState(false);
     const [showOnlyAvailable, setShowOnlyAvailable] = useState(true);
+    const [selectedSubcategory, setSelectedSubcategory] = useState('');
 
     // Use refs to prevent race conditions
     const abortControllerRef = useRef(null);
@@ -52,6 +53,11 @@ function Services({ selectedServices, toggleService }) {
         { key: 'catering', label: 'Catering' },
         { key: 'decor', label: 'Decor' },
         { key: 'entertainment', label: 'Entertainment' },
+        { key: 'photography_media', label: 'Photography & Media' },
+        { key: 'transportations', label: 'Transportations' },
+        { key: 'styling', label: 'Styling' },
+        { key: 'mehendi_artist', label: 'Mehendi Artist' },
+        { key: 'supporting_staff', label: 'Supporting Staff' }
     ];
 
     // Fetch services from database with abort controller
@@ -90,6 +96,9 @@ function Services({ selectedServices, toggleService }) {
             }
             if (filters.date) {
                 params.append('date', filters.date);
+            }
+            if (filters.subcategory) {
+                params.append('subcategory', filters.subcategory);
             }
 
             const url = `http://localhost:5001/api/services${params.toString() ? `?${params.toString()}` : ''}`;
@@ -148,7 +157,8 @@ function Services({ selectedServices, toggleService }) {
                 minRating: ratingRange[0],
                 maxRating: ratingRange[1],
                 foodType: activeCategory === 'catering' ? foodType : undefined,
-                date: selectedDate
+                date: selectedDate,
+                subcategory: activeCategory === 'supporting_staff' ? (selectedSubcategory || undefined) : undefined
             };
 
             console.log('=== FILTERING SERVICES ===');
@@ -499,6 +509,31 @@ function Services({ selectedServices, toggleService }) {
                                         All
                                     </label>
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Supporting Staff Subcategory Filter */}
+                        {activeCategory === 'supporting_staff' && (
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{
+                                    fontWeight: 500,
+                                    display: 'block',
+                                    marginBottom: '12px',
+                                    color: '#555'
+                                }}>
+                                    <i className="fas fa-users-cog" style={{ marginRight: '4px' }}></i>
+                                    Supporting Staff Type
+                                </label>
+                                <select
+                                    value={selectedSubcategory}
+                                    onChange={(e) => setSelectedSubcategory(e.target.value)}
+                                    style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}
+                                >
+                                    <option value="">All</option>
+                                    <option value="security_safety">Security & Safety</option>
+                                    <option value="maintenance">Maintenance</option>
+                                    <option value="housekeeping">Housekeeping</option>
+                                </select>
                             </div>
                         )}
 

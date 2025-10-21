@@ -26,7 +26,17 @@ router.post('/start', async (req, res) => {
             return res.status(400).json({ message: 'customerId, vendorId, serviceCategory are required' });
         }
 
-        const validCategories = ['Venue', 'Catering', 'Decor', 'Entertainment'];
+        const validCategories = [
+            'Venue',
+            'Catering',
+            'Decor',
+            'Entertainment',
+            'Photography & Media',
+            'Transportations',
+            'Styling',
+            'Mehendi Artist',
+            'Supporting Staff'
+        ];
         if (!validCategories.includes(serviceCategory)) {
             return res.status(400).json({ message: 'Invalid serviceCategory' });
         }

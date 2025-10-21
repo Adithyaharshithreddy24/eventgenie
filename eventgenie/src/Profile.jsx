@@ -67,7 +67,7 @@ function Profile({ customer, logout, toggleService }) {
         const openChat = params.get('openChat');
         const chatId = params.get('chatId');
         const vendorId = params.get('vendorId');
-        const category = params.get('category') || 'Catering';
+        const category = params.get('category') || 'General';
         
         if (openChat && customer?.id && vendorId) {
             // Create a mock booking object to trigger chat opening

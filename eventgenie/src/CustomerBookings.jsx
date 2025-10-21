@@ -181,7 +181,7 @@ const CustomerBookings = ({ customerId, chatForNotification, onChatClose }) => {
                                     <CustomerChat
                                         customer={{ id: customerId }}
                                         vendor={{ id: b.vendorId, name: b.vendorName }}
-                                        serviceCategory={b.serviceCategory || 'Catering'}
+                                        serviceCategory={b.serviceCategory || b.category || 'General'}
                                         onClose={() => {
                                             setChatForBooking(null);
                                             if (onChatClose) onChatClose();

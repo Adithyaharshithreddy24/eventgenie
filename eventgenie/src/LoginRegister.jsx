@@ -30,6 +30,7 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
         confirmPassword: '',
         photo: '',
         upiId: '',
+        cinNumber: '',
     });
     const [regError, setRegError] = useState('');
     const [vendorSuccess, setVendorSuccess] = useState('');
@@ -375,7 +376,7 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
                                 <div className="form-group">
                                     <label>Services Provided</label>
                                     <div className="checkbox-group">
-                                        {['venue', 'catering', 'decor', 'entertainment'].map(service => (
+                                        {['venue', 'catering', 'decor', 'entertainment', 'photography_media', 'transportations', 'styling', 'mehendi_artist', 'supporting_staff'].map(service => (
                                             <label key={service} className="checkbox-label">
                                                 <input
                                                     type="checkbox"
@@ -389,7 +390,7 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
                                                             services: checked ? [...prev.services, service] : prev.services.filter(s => s !== service)
                                                         }));
                                                     }}
-                                                /> {service.charAt(0).toUpperCase() + service.slice(1)}
+                                                /> {service.charAt(0).toUpperCase() + service.slice(1).replace('_', ' & ')}
                                             </label>
                                         ))}
                                     </div>
@@ -445,6 +446,12 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
                                 <div className="form-group">
                                     <label htmlFor="vendor-photo">Profile Photo URL (optional)</label>
                                     <input type="url" id="vendor-photo" value={vendorData.photo} onChange={e => setVendorData({ ...vendorData, photo: e.target.value })} />
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="cin-number">CIN Number *</label>
+                                    <input type="text" id="cin-number" value={vendorData.cinNumber} onChange={e => setVendorData({ ...vendorData, cinNumber: e.target.value })} placeholder="L12345AB1234CDE1234" required />
+                                    <small style={{ color: '#666', fontSize: '0.9rem' }}>Corporate Identification Number - Required for admin verification</small>
                                 </div>
 
                                 <div className="form-group">

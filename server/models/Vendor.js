@@ -46,6 +46,11 @@ const vendorSchema = new mongoose.Schema({
         type: String,
         required: false
     }, // Generated UPI QR code data URL
+    cinNumber: {
+        type: String,
+        required: true,
+        unique: true
+    }, // Corporate Identification Number for admin verification
     status: {
         type: String,
         enum: ['pending', 'accepted', 'rejected'],

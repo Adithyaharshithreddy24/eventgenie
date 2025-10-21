@@ -51,7 +51,17 @@ const chatSchema = new mongoose.Schema({
     }],
     serviceCategory: {
         type: String,
-        enum: ['Venue', 'Catering', 'Decor', 'Entertainment'],
+        enum: [
+            'Venue',
+            'Catering',
+            'Decor',
+            'Entertainment',
+            'Photography & Media',
+            'Transportations',
+            'Styling',
+            'Mehendi Artist',
+            'Supporting Staff'
+        ],
         required: true
     },
     messages: [messageSchema],

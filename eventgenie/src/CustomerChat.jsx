@@ -149,7 +149,7 @@ export default function CustomerChat({ customer, vendor, serviceCategory, onClos
                     onMouseDown={handleMouseDown}
                 >
                     <i className="fas fa-user-circle"></i>
-                    <div>Chat with {vendor?.name || 'Vendor'} — {serviceCategory}</div>
+                    <div>Chat with {vendor?.name || 'Vendor'}</div>
                     <button
                         className="btn secondary-btn"
                         onClick={onClose}

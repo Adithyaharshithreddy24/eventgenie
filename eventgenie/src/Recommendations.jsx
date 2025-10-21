@@ -6,7 +6,12 @@ const CATEGORY_OPTIONS = [
 	{ key: 'venue', label: 'Venue' },
 	{ key: 'catering', label: 'Catering' },
 	{ key: 'decor', label: 'Decor' },
-	{ key: 'entertainment', label: 'Entertainment' }
+	{ key: 'entertainment', label: 'Entertainment' },
+	{ key: 'photography_media', label: 'Photography & Media' },
+	{ key: 'transportations', label: 'Transportations' },
+	{ key: 'styling', label: 'Styling' },
+	{ key: 'mehendi_artist', label: 'Mehendi Artist' },
+	{ key: 'supporting_staff', label: 'Supporting Staff' }
 ];
 
 function Recommendations({ toggleService, selectedServices = [] }) {
@@ -152,19 +157,21 @@ function Recommendations({ toggleService, selectedServices = [] }) {
     overflow: 'hidden',
     background: '#fff'
 }}>
-									<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: 8, marginBottom: 12,width: '100%' }}>
+									<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', padding: '12px', marginBottom: 12,width: '100%' }}>
 										<div>
 											<strong>Combo #{idx + 1}</strong>
 											<span style={{ marginLeft: 12 }}>Total: ₹{combo.totalPrice}</span>
 											<span style={{ marginLeft: 12 }}>Avg Rating: {Number(combo.averageRating || 0).toFixed(1)}</span>
 										</div>
 										<div>
-											<button className="btn primary-btn" onClick={() => handleBookSet(combo)}>Book Set</button>
+											<button className="btn primary-btn" onClick={() => handleBookSet(combo)}>Book Combo</button>
 										</div>
 									</div>
 									<div className="services-grid" style={{ 
     display: 'flex', 
-    flexDirection: 'row', 
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+	width:'100%',
+	scrollbarWidth: 'thin',
     gap: '16px', 
     overflowX: 'auto', 
     paddingBottom: '8px' 

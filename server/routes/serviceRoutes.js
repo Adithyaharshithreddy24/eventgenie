@@ -123,6 +123,7 @@ router.get('/', async (req, res) => {
     try {
         const {
             category,
+            subcategory,
             minPrice,
             maxPrice,
             minRating,
@@ -138,6 +139,7 @@ router.get('/', async (req, res) => {
             maxPrice,
             minRating,
             maxRating,
+            subcategory,
             foodType,
             search,
             date
@@ -149,6 +151,11 @@ router.get('/', async (req, res) => {
         // Category filter
         if (category && category !== 'all') {
             filter.category = category;
+        }
+
+        // Subcategory filter
+        if (subcategory) {
+            filter.subcategory = subcategory;
         }
 
         // Price range filter
@@ -278,7 +285,7 @@ router.get('/vendor/:vendorUsername', async (req, res) => {
 // Create new service (for vendors)
 router.post('/', async (req, res) => {
     try {
-        const { name, provider, vendorUsername, price, category, foodType, images, description, address } = req.body;
+        const { name, provider, vendorUsername, price, category, subcategory, foodType, images, description, address } = req.body;
 
         // Validate required fields
         if (!name || !provider || !vendorUsername || !price || !category || !images || !description || !address) {
@@ -296,6 +303,7 @@ router.post('/', async (req, res) => {
             vendorUsername,
             price,
             category,
+            subcategory: subcategory || null,
             foodType: foodType || 'both',
             images,
             description,
@@ -312,7 +320,7 @@ router.post('/', async (req, res) => {
 // Update service
 router.put('/:id', async (req, res) => {
     try {
-        const { name, provider, vendorUsername, price, category, foodType, images, description, address } = req.body;
+        const { name, provider, vendorUsername, price, category, subcategory, foodType, images, description, address } = req.body;
 
         const service = await Service.findById(req.params.id);
         if (!service) {
@@ -325,6 +333,7 @@ router.put('/:id', async (req, res) => {
         if (vendorUsername) service.vendorUsername = vendorUsername;
         if (price) service.price = price;
         if (category) service.category = category;
+        if (subcategory !== undefined) service.subcategory = subcategory;
         if (foodType) service.foodType = foodType;
         if (images) service.images = images;
         if (description) service.description = description;

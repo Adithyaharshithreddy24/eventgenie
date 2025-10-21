@@ -146,7 +146,7 @@ export default function VendorChat({ vendor }) {
                     <>
                         <div className="chat-header">
                             <i className="fas fa-user-circle"></i>
-                            <div>{getCustomerName(active)} — {active.serviceCategory}</div>
+                            <div>{getCustomerName(active)}</div>
                         </div>
 
                         <div className="chat-body">

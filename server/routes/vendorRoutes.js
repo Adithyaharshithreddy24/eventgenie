@@ -26,7 +26,7 @@ router.get('/check-username/:username', async (req, res) => {
 // Vendor Registration
 router.post('/register', async (req, res) => {
     try {
-        const { username, password, name, businessName, email, phone, about, categories, profilePhoto, upiId } = req.body;
+        const { username, password, name, businessName, email, phone, about, categories, profilePhoto, upiId, cinNumber } = req.body;
 
         // Check if vendor already exists
         const existingVendor = await Vendor.findOne({
@@ -58,7 +58,8 @@ router.post('/register', async (req, res) => {
             about: about || '',
             categories: categories || [],
             profilePhoto: profilePhoto || '',
-            upiId: upiId || ''
+            upiId: upiId || '',
+            cinNumber: cinNumber || ''
         });
 
         await vendor.save();
@@ -216,7 +217,7 @@ router.get('/services/:vendorId', async (req, res) => {
 // Add New Service (Vendor only)
 router.post('/services/:vendorId', async (req, res) => {
     try {
-        const { name, provider, price, category, foodType, images, description, address } = req.body;
+        const { name, provider, price, category, subcategory, foodType, images, description, address } = req.body;
         const { vendorId } = req.params;
 
         // Check if vendor exists
@@ -236,6 +237,7 @@ router.post('/services/:vendorId', async (req, res) => {
             vendorUsername: vendor.username,
             price,
             category,
+            subcategory: subcategory || null,
             foodType: foodType || 'both',
             images,
             description,
@@ -256,7 +258,7 @@ router.post('/services/:vendorId', async (req, res) => {
 // Update Service (Vendor ownership check)
 router.put('/services/:vendorId/:serviceId', async (req, res) => {
     try {
-        const { name, provider, price, category, foodType, images, description, address } = req.body;
+        const { name, provider, price, category, subcategory, foodType, images, description, address } = req.body;
         const { vendorId, serviceId } = req.params;
 
         // Check if vendor exists
@@ -283,6 +285,7 @@ router.put('/services/:vendorId/:serviceId', async (req, res) => {
         if (provider) updateData.provider = provider;
         if (price) updateData.price = price;
         if (category) updateData.category = category;
+        if (subcategory !== undefined) updateData.subcategory = subcategory;
         if (foodType) updateData.foodType = foodType;
         if (images) updateData.images = images;
         if (description) updateData.description = description;

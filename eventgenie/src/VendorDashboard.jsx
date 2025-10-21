@@ -101,6 +101,11 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
         { key: 'catering', label: 'Catering' },
         { key: 'decor', label: 'Decor' },
         { key: 'entertainment', label: 'Entertainment' },
+        { key: 'photography_media', label: 'Photography & Media' },
+        { key: 'transportations', label: 'Transportations' },
+        { key: 'styling', label: 'Styling' },
+        { key: 'mehendi_artist', label: 'Mehendi Artist' },
+        { key: 'supporting_staff', label: 'Supporting Staff' }
     ];
 
     // Filter services for this vendor
@@ -211,6 +216,12 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
             return;
         }
 
+        // Validate that the selected category is in vendor's provided services
+        if (!vendor.categories || !vendor.categories.includes(form.category)) {
+            toast.error(`You can only add services in categories you provide. Please select from: ${vendor.categories ? vendor.categories.join(', ') : 'No categories available'}`);
+            return;
+        }
+
         // Validate images array
         const validImages = form.images.filter(img => img.trim() !== '');
         if (validImages.length === 0) {
@@ -227,6 +238,7 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
                 provider: form.provider,
                 price: parseFloat(form.price),
                 category: form.category,
+                subcategory: form.category === 'supporting_staff' ? (form.subcategory || null) : null,
                 foodType: form.foodType,
                 images: validImages,
                 description: form.description,
@@ -612,11 +624,43 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
                                     style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px' }}
                                 >
                                     <option value="">Select Category</option>
-                                    <option value="venue">Venue</option>
-                                    <option value="catering">Catering</option>
-                                    <option value="decor">Decor</option>
-                                    <option value="entertainment">Entertainment</option>
+                                    {vendor.categories && vendor.categories.map(category => {
+                                        const categoryMap = {
+                                            'venue': 'Venue',
+                                            'catering': 'Catering',
+                                            'decor': 'Decor',
+                                            'entertainment': 'Entertainment',
+                                            'photography_media': 'Photography & Media',
+                                            'transportations': 'Transportations',
+                                            'styling': 'Styling',
+                                            'mehendi_artist': 'Mehendi Artist',
+                                            'supporting_staff': 'Supporting Staff'
+                                        };
+                                        return (
+                                            <option key={category} value={category}>
+                                                {categoryMap[category] || category}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
+                                {vendor.categories && vendor.categories.length > 0 && (
+                                    <small style={{ color: '#666', fontSize: '0.9rem', marginTop: '5px', display: 'block' }}>
+                                        You can only add services in categories you provide: {vendor.categories.map(cat => {
+                                            const categoryMap = {
+                                                'venue': 'Venue',
+                                                'catering': 'Catering',
+                                                'decor': 'Decor',
+                                                'entertainment': 'Entertainment',
+                                                'photography_media': 'Photography & Media',
+                                                'transportations': 'Transportations',
+                                                'styling': 'Styling',
+                                                'mehendi_artist': 'Mehendi Artist',
+                                                'supporting_staff': 'Supporting Staff'
+                                            };
+                                            return categoryMap[cat] || cat;
+                                        }).join(', ')}
+                                    </small>
+                                )}
                             </div>
 
                             {form.category === 'catering' && (
@@ -631,6 +675,24 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
                                         <option value="both">Both Veg & Non-Veg</option>
                                         <option value="veg">Vegetarian Only</option>
                                         <option value="nonveg">Non-Vegetarian Only</option>
+                                    </select>
+                                </div>
+                            )}
+
+                            {form.category === 'supporting_staff' && (
+                                <div className="form-group">
+                                    <label htmlFor="service-subcategory">Supporting Staff Subcategory</label>
+                                    <select
+                                        id="service-subcategory"
+                                        value={form.subcategory || ''}
+                                        onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
+                                        required
+                                        style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px' }}
+                                    >
+                                        <option value="">Select Subcategory</option>
+                                        <option value="security_safety">Security & Safety</option>
+                                        <option value="maintenance">Maintenance</option>
+                                        <option value="housekeeping">Housekeeping</option>
                                     </select>
                                 </div>
                             )}
@@ -979,7 +1041,7 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
                                                 gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
                                                 gap: '12px'
                                             }}>
-                                                {['venue', 'catering', 'decor', 'entertainment'].map(service => (
+                                                {['venue', 'catering', 'decor', 'entertainment', 'photography_media', 'transportations', 'styling', 'mehendi_artist', 'supporting_staff'].map(service => (
                                                     <label key={service} className="checkbox-label" style={{
                                                         display: 'flex',
                                                         alignItems: 'center',
@@ -995,7 +1057,7 @@ export default function VendorDashboard({ vendor, isVendorLoggedIn, logout, serv
                                                             checked={editProfileData.services.includes(service)}
                                                             onChange={handleServiceChange}
                                                         />
-                                                        {service.charAt(0).toUpperCase() + service.slice(1)}
+                                                        {service.charAt(0).toUpperCase() + service.slice(1).replace('_', ' & ')}
                                                     </label>
                                                 ))}
                                             </div>

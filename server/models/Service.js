@@ -26,6 +26,8 @@ const serviceSchema = new mongoose.Schema({
     vendorUsername: { type: String, required: true },
     price: { type: Number, required: true },
     category: { type: String, required: true }, // e.g., venue, catering, decor, entertainment
+    // Optional subcategory for categories like Supporting Staff
+    subcategory: { type: String, required: false, default: null },
     foodType: { type: String, enum: ['veg', 'nonveg', 'both'], default: 'both' }, // For catering services
     images: [{ type: String, required: true }], // Array of image URLs (minimum 1)
     description: { type: String, required: true },

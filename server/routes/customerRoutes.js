@@ -389,6 +389,7 @@ router.get('/detailed-bookings/:customerId', async (req, res) => {
                     provider: service.provider,
                     price: service.price,
                     category: service.category,
+                    serviceCategory: service.category, // Add serviceCategory for frontend compatibility
                     images: service.images,
                     description: service.description,
                     bookedForDate: booking.bookedForDate,
