@@ -160,9 +160,9 @@ function LoginRegister({ login, register, isLoggedIn, isVendorLoggedIn }) {
 
     const handleVendorRegister = async (e) => {
         e.preventDefault();
-        if (!vendorData.name || !vendorData.businessName || !vendorData.email || !vendorData.phone || !vendorData.about || !vendorData.username || !vendorData.password || !vendorData.confirmPassword) {
+        if (!vendorData.name || !vendorData.businessName || !vendorData.email || !vendorData.phone || !vendorData.about || !vendorData.username || !vendorData.password || !vendorData.confirmPassword || !vendorData.cinNumber) {
             setVendorSuccess('');
-            setRegError('Please fill all fields');
+            setRegError('Please fill all fields including CIN number');
             return;
         }
         if (vendorData.password !== vendorData.confirmPassword) {

@@ -143,7 +143,8 @@ function App() {
         about: user.about,
         categories: user.services || [],
         profilePhoto: user.photo || '',
-        upiId: user.upiId || '' // Optional field
+        upiId: user.upiId || '', // Optional field
+        cinNumber: user.cinNumber || '' // CIN Number field
       };
 
       console.log('Prepared user data:', userData);
