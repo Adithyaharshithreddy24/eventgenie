@@ -22,14 +22,14 @@ function Recommendations({ toggleService, selectedServices = [] }) {
 	const [date, setDate] = useState('');
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
-    const [results, setResults] = useState(() => {
-        try {
-            const cached = localStorage.getItem('recommendationsResults');
-            return cached ? JSON.parse(cached) : [];
-        } catch {
-            return [];
-        }
-    });
+	const [results, setResults] = useState(() => {
+		try {
+			const cached = localStorage.getItem('recommendationsResults');
+			return cached ? JSON.parse(cached) : [];
+		} catch {
+			return [];
+		}
+	});
 	const [activeService, setActiveService] = useState(null);
 
 	const toggleCategory = (key) => {
@@ -61,18 +61,18 @@ function Recommendations({ toggleService, selectedServices = [] }) {
 			if (!response.ok) {
 				throw new Error('Failed to fetch recommendations');
 			}
-            const data = await response.json();
-            const combos = (data.combinations || []).map(c => ({
-                ...c,
-                services: (c.services || []).map(svc => ({
-                    ...svc,
-                    // if a date is provided, returned items are available (backend filters unavailable out)
-                    isAvailable: date ? (svc.isAvailable !== false) : undefined,
-                    availabilityStatus: date ? ((svc.isAvailable !== false) ? 'Available' : 'Not Available') : 'Date not selected'
-                }))
-            }));
-            setResults(combos);
-            try { localStorage.setItem('recommendationsResults', JSON.stringify(combos)); } catch {}
+			const data = await response.json();
+			const combos = (data.combinations || []).map(c => ({
+				...c,
+				services: (c.services || []).map(svc => ({
+					...svc,
+					// if a date is provided, returned items are available (backend filters unavailable out)
+					isAvailable: date ? (svc.isAvailable !== false) : undefined,
+					availabilityStatus: date ? ((svc.isAvailable !== false) ? 'Available' : 'Not Available') : 'Date not selected'
+				}))
+			}));
+			setResults(combos);
+			try { localStorage.setItem('recommendationsResults', JSON.stringify(combos)); } catch { }
 		} catch (err) {
 			setError(err.message || 'Request failed');
 		} finally {
@@ -129,7 +129,7 @@ function Recommendations({ toggleService, selectedServices = [] }) {
 					</div>
 					<div>
 						<label style={{ fontWeight: 600, display: 'block', marginBottom: 8 }}>Budget (₹)</label>
-						<input type="number" min={1} step={100} value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="Enter total budget" style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: 6 }} />
+						<input type="number" min={1} value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="Enter total budget" style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: 6 }} />
 					</div>
 					<div>
 						<label style={{ fontWeight: 600, display: 'block', marginBottom: 8 }}>Minimum Rating: {minRating}</label>
@@ -144,20 +144,20 @@ function Recommendations({ toggleService, selectedServices = [] }) {
 				</form>
 
 				{results && results.length > 0 && (
-					<div style={{ marginTop: 24,width: '100%' }}>
+					<div style={{ marginTop: 24, width: '100%' }}>
 						<h3 style={{ marginBottom: 12 }}>Top {results.length} combinations</h3>
-						<div style={{ display: 'flex', flexDirection: 'column', gap: 24 ,width: '100%'}}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
 							{results.map((combo, idx) => (
-								<div key={idx} className="service-card" style={{ 
-    minWidth: '100%', 
-    flexShrink: 0, 
-    cursor: 'pointer', 
-    border: '1px solid #eee', 
-    borderRadius: '8px', 
-    overflow: 'hidden',
-    background: '#fff'
-}}>
-									<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', padding: '12px', marginBottom: 12,width: '100%' }}>
+								<div key={idx} className="service-card" style={{
+									minWidth: '100%',
+									flexShrink: 0,
+									cursor: 'pointer',
+									border: '1px solid #eee',
+									borderRadius: '8px',
+									overflow: 'hidden',
+									background: '#fff'
+								}}>
+									<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', padding: '12px', marginBottom: 12, width: '100%' }}>
 										<div>
 											<strong>Combo #{idx + 1}</strong>
 											<span style={{ marginLeft: 12 }}>Total: ₹{combo.totalPrice}</span>
@@ -167,31 +167,31 @@ function Recommendations({ toggleService, selectedServices = [] }) {
 											<button className="btn primary-btn" onClick={() => handleBookSet(combo)}>Book Combo</button>
 										</div>
 									</div>
-									<div className="services-grid" style={{ 
-    display: 'flex', 
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-	width:'100%',
-	scrollbarWidth: 'thin',
-    gap: '16px', 
-    overflowX: 'auto', 
-    paddingBottom: '8px' 
-}}>
-                                    {(combo.services || []).map((s) => (
-                                        <div key={s._id} className="service-card" style={{ margin: 8, cursor: 'pointer', position: 'relative' }} onClick={() => handleOpenService(s)}>
-                                            {date && (
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    top: 8,
-                                                    left: 8,
-                                                    padding: '4px 8px',
-                                                    borderRadius: 12,
-                                                    fontSize: 12,
-                                                    background: (s.isAvailable !== false) ? '#4caf50' : '#f44336',
-                                                    color: '#fff'
-                                                }}>
-                                                    {(s.isAvailable !== false) ? 'Available' : 'Not Available'}
-                                                </div>
-                                            )}
+									<div className="services-grid" style={{
+										display: 'flex',
+										gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+										width: '100%',
+										scrollbarWidth: 'thin',
+										gap: '16px',
+										overflowX: 'auto',
+										paddingBottom: '8px'
+									}}>
+										{(combo.services || []).map((s) => (
+											<div key={s._id} className="service-card" style={{ margin: 8, cursor: 'pointer', position: 'relative' }} onClick={() => handleOpenService(s)}>
+												{date && (
+													<div style={{
+														position: 'absolute',
+														top: 8,
+														left: 8,
+														padding: '4px 8px',
+														borderRadius: 12,
+														fontSize: 12,
+														background: (s.isAvailable !== false) ? '#4caf50' : '#f44336',
+														color: '#fff'
+													}}>
+														{(s.isAvailable !== false) ? 'Available' : 'Not Available'}
+													</div>
+												)}
 												<img src={(s.images && s.images[0]) || 'https://via.placeholder.com/300x200?text=No+Image'} alt={s.name} className="service-image" />
 												<div className="service-info">
 													<h3 className="service-name">{s.name}</h3>
@@ -213,8 +213,8 @@ function Recommendations({ toggleService, selectedServices = [] }) {
 					onClose={handleCloseService}
 					onAddToCart={handleAddToCart}
 					selectedDate={date || null}
-					showDatePopup={() => {}}
-					closeDatePopup={() => {}}
+					showDatePopup={() => { }}
+					closeDatePopup={() => { }}
 				/>
 			)}
 		</section>

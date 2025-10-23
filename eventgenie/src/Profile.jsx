@@ -67,8 +67,8 @@ function Profile({ customer, logout, toggleService }) {
         const openChat = params.get('openChat');
         const chatId = params.get('chatId');
         const vendorId = params.get('vendorId');
-        const category = params.get('category') || 'General';
-        
+        const category = params.get('category') || 'Catering';
+
         if (openChat && customer?.id && vendorId) {
             // Create a mock booking object to trigger chat opening
             const mockBooking = {
@@ -79,7 +79,7 @@ function Profile({ customer, logout, toggleService }) {
                 serviceName: `${category} Service`
             };
             setChatForNotification(mockBooking);
-            
+
             // Refresh notifications
             setTimeout(() => {
                 window.dispatchEvent(new CustomEvent('refreshNotifications'));
@@ -631,8 +631,8 @@ function Profile({ customer, logout, toggleService }) {
                 </div>
 
                 <div className="past-bookings-section" style={{ marginTop: '40px' }}>
-                    <CustomerBookings 
-                        customerId={customer.id} 
+                    <CustomerBookings
+                        customerId={customer.id}
                         chatForNotification={chatForNotification}
                         onChatClose={() => setChatForNotification(null)}
                     />
