@@ -330,38 +330,38 @@ function AdminPortal() {
                                         );
                                     })
                                     .map((vendor) => (
-                                    <div key={vendor._id} className="vendor-card pending">
-                                        <div className="vendor-header">
-                                            <h3>{vendor.businessName}</h3>
-                                            <span className="status pending">Pending</span>
+                                        <div key={vendor._id} className="vendor-card pending">
+                                            <div className="vendor-header">
+                                                <h3>{vendor.businessName}</h3>
+                                                <span className="status pending">Pending</span>
+                                            </div>
+                                            <div className="vendor-details">
+                                                <p><strong>Owner:</strong> {vendor.name}</p>
+                                                <p><strong>Username:</strong> {vendor.username}</p>
+                                                <p><strong>Email:</strong> {vendor.email}</p>
+                                                <p><strong>Phone:</strong> {vendor.phone}</p>
+                                                {vendor.about && <p><strong>About:</strong> {vendor.about}</p>}
+                                                {vendor.categories && vendor.categories.length > 0 && (
+                                                    <p><strong>Services:</strong> {vendor.categories.join(', ')}</p>
+                                                )}
+                                                <p><strong>Registered:</strong> {new Date(vendor.createdAt).toLocaleDateString()}</p>
+                                            </div>
+                                            <div className="vendor-actions">
+                                                <button
+                                                    onClick={() => approveVendor(vendor._id)}
+                                                    className="approve-btn"
+                                                >
+                                                    ✅ Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => rejectVendor(vendor._id)}
+                                                    className="reject-btn"
+                                                >
+                                                    ❌ Reject
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="vendor-details">
-                                            <p><strong>Owner:</strong> {vendor.name}</p>
-                                            <p><strong>Username:</strong> {vendor.username}</p>
-                                            <p><strong>Email:</strong> {vendor.email}</p>
-                                            <p><strong>Phone:</strong> {vendor.phone}</p>
-                                            {vendor.about && <p><strong>About:</strong> {vendor.about}</p>}
-                                            {vendor.categories && vendor.categories.length > 0 && (
-                                                <p><strong>Services:</strong> {vendor.categories.join(', ')}</p>
-                                            )}
-                                            <p><strong>Registered:</strong> {new Date(vendor.createdAt).toLocaleDateString()}</p>
-                                        </div>
-                                        <div className="vendor-actions">
-                                            <button
-                                                onClick={() => approveVendor(vendor._id)}
-                                                className="approve-btn"
-                                            >
-                                                ✅ Approve
-                                            </button>
-                                            <button
-                                                onClick={() => rejectVendor(vendor._id)}
-                                                className="reject-btn"
-                                            >
-                                                ❌ Reject
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
                             </div>
                         )}
                     </div>
@@ -409,44 +409,44 @@ function AdminPortal() {
                                                 );
                                             })
                                             .map((vendor) => (
-                                            <tr key={vendor._id} className="clickable-row" onClick={() => openDetailModal('vendors', vendor._id)}>
-                                                <td>{vendor.businessName}</td>
-                                                <td>{vendor.name}</td>
-                                                <td>{vendor.username}</td>
-                                                <td>{vendor.email}</td>
-                                                <td>{vendor.phone}</td>
-                                                <td>
-                                                    <span className={`status ${vendor.status}`}>
-                                                        {vendor.status}
-                                                    </span>
-                                                </td>
-                                                <td>{new Date(vendor.createdAt).toLocaleDateString()}</td>
-                                                <td>
-                                                    {vendor.status === 'pending' && (
-                                                        <div className="action-buttons">
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); approveVendor(vendor._id); }}
-                                                                className="approve-btn small"
-                                                            >
-                                                                ✅
-                                                            </button>
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); rejectVendor(vendor._id); }}
-                                                                className="reject-btn small"
-                                                            >
-                                                                ❌
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                    {vendor.status === 'accepted' && (
-                                                        <span className="approved-text">Approved</span>
-                                                    )}
-                                                    {vendor.status === 'rejected' && (
-                                                        <span className="rejected-text">Rejected</span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                <tr key={vendor._id} className="clickable-row" onClick={() => openDetailModal('vendors', vendor._id)}>
+                                                    <td>{vendor.businessName}</td>
+                                                    <td>{vendor.name}</td>
+                                                    <td>{vendor.username}</td>
+                                                    <td>{vendor.email}</td>
+                                                    <td>{vendor.phone}</td>
+                                                    <td>
+                                                        <span className={`status ${vendor.status}`}>
+                                                            {vendor.status}
+                                                        </span>
+                                                    </td>
+                                                    <td>{new Date(vendor.createdAt).toLocaleDateString()}</td>
+                                                    <td>
+                                                        {vendor.status === 'pending' && (
+                                                            <div className="action-buttons">
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); approveVendor(vendor._id); }}
+                                                                    className="approve-btn small"
+                                                                >
+                                                                    ✅
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); rejectVendor(vendor._id); }}
+                                                                    className="reject-btn small"
+                                                                >
+                                                                    ❌
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                        {vendor.status === 'accepted' && (
+                                                            <span className="approved-text">Approved</span>
+                                                        )}
+                                                        {vendor.status === 'rejected' && (
+                                                            <span className="rejected-text">Rejected</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -495,18 +495,18 @@ function AdminPortal() {
                                                 );
                                             })
                                             .map((customer) => (
-                                            <tr key={customer._id} className="clickable-row" onClick={() => openDetailModal('customers', customer._id)}>
-                                                <td>{customer.name}</td>
-                                                <td>{customer.username}</td>
-                                                <td>{customer.email}</td>
-                                                <td>{customer.phone}</td>
-                                                <td>{customer.address}</td>
-                                                <td>{new Date(customer.createdAt).toLocaleDateString()}</td>
-                                                <td>
-                                                    <span className="view-text">Click to view details</span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                <tr key={customer._id} className="clickable-row" onClick={() => openDetailModal('customers', customer._id)}>
+                                                    <td>{customer.name}</td>
+                                                    <td>{customer.username}</td>
+                                                    <td>{customer.email}</td>
+                                                    <td>{customer.phone}</td>
+                                                    <td>{customer.address}</td>
+                                                    <td>{new Date(customer.createdAt).toLocaleDateString()}</td>
+                                                    <td>
+                                                        <span className="view-text">Click to view details</span>
+                                                    </td>
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -554,18 +554,18 @@ function AdminPortal() {
                                                 );
                                             })
                                             .map((service) => (
-                                            <tr key={service._id} className="clickable-row" onClick={() => openDetailModal('services', service._id)}>
-                                                <td>{service.name}</td>
-                                                <td>{service.provider}</td>
-                                                <td>{service.category}</td>
-                                                <td>₹{service.price}</td>
-                                                <td>{service.vendorUsername?.businessName || service.vendorUsername?.name || 'Unknown'}</td>
-                                                <td>{new Date(service.createdAt).toLocaleDateString()}</td>
-                                                <td>
-                                                    <span className="view-text">Click to view details</span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                <tr key={service._id} className="clickable-row" onClick={() => openDetailModal('services', service._id)}>
+                                                    <td>{service.name}</td>
+                                                    <td>{service.provider}</td>
+                                                    <td>{service.category}</td>
+                                                    <td>₹{service.price}</td>
+                                                    <td>{service.vendorUsername?.businessName || service.vendorUsername?.name || 'Unknown'}</td>
+                                                    <td>{new Date(service.createdAt).toLocaleDateString()}</td>
+                                                    <td>
+                                                        <span className="view-text">Click to view details</span>
+                                                    </td>
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -598,7 +598,7 @@ function AdminPortal() {
                                             <th>Booked For</th>
                                             <th>Booked On</th>
                                             <th>Status</th>
-                                            <th>Amount</th>
+                                            <th>Price</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -616,24 +616,24 @@ function AdminPortal() {
                                                 );
                                             })
                                             .map((booking) => (
-                                            <tr key={booking.id} className="clickable-row" onClick={() => openDetailModal('bookings', booking.id, booking)}>
-                                                <td>{booking.serviceName}</td>
-                                                <td>{booking.serviceCategory}</td>
-                                                <td>{booking.vendorBusinessName}</td>
-                                                <td>{booking.customerName}</td>
-                                                <td>{new Date(booking.bookedForDate).toLocaleDateString()}</td>
-                                                <td>{new Date(booking.dateBooked).toLocaleDateString()}</td>
-                                                <td>
-                                                    <span className={`status ${booking.status}`}>
-                                                        {booking.status}
-                                                    </span>
-                                                </td>
-                                                <td>₹{booking.totalAmount}</td>
-                                                <td>
-                                                    <span className="view-text">Click to view details</span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                <tr key={booking.id} className="clickable-row" onClick={() => openDetailModal('bookings', booking.id, booking)}>
+                                                    <td>{booking.serviceName}</td>
+                                                    <td>{booking.serviceCategory}</td>
+                                                    <td>{booking.vendorBusinessName}</td>
+                                                    <td>{booking.customerName}</td>
+                                                    <td>{new Date(booking.bookedForDate).toLocaleDateString()}</td>
+                                                    <td>{new Date(booking.dateBooked).toLocaleDateString()}</td>
+                                                    <td>
+                                                        <span className={`status ${booking.status}`}>
+                                                            {booking.status}
+                                                        </span>
+                                                    </td>
+                                                    <td>₹{booking.servicePrice}</td>
+                                                    <td>
+                                                        <span className="view-text">Click to view details</span>
+                                                    </td>
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -682,35 +682,35 @@ function AdminPortal() {
                                                 );
                                             })
                                             .map((t) => (
-                                            <tr key={t._id}>
-                                                <td title={(t.message || '').trim() || undefined}>{t.type}</td>
-                                                <td title={(t.message || '').trim() || undefined}>{t.userType}</td>
-                                                <td title={(t.message || '').trim() || undefined}>{t.subject}</td>
-                                                <td title={(t.message || '').trim() || undefined}>{t.status}</td>
-                                                <td>{new Date(t.createdAt).toLocaleString()}</td>
-                                                <td>{Array.isArray(t.replies) ? t.replies.length : 0}</td>
-                                                <td>
-                                                    <div style={{ display: 'flex', gap: 8 }}>
-                                                        <input
-                                                            value={t._replyDraft || ''}
-                                                            onChange={(e) => {
-                                                                const draft = e.target.value;
-                                                                setSupportTickets(prev => prev.map(x => x._id === t._id ? { ...x, _replyDraft: draft } : x));
-                                                            }}
-                                                            placeholder={t.status === 'closed' ? 'Closed' : 'Type a reply'}
-                                                            disabled={t.status === 'closed'}
-                                                        />
-                                                        <button
-                                                            onClick={() => {
-                                                                setSupportReply(t._replyDraft || '');
-                                                                replyToTicket(t._id);
-                                                            }}
-                                                            disabled={supportLoading || t.status === 'closed'}
-                                                        >Send</button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                <tr key={t._id}>
+                                                    <td title={(t.message || '').trim() || undefined}>{t.type}</td>
+                                                    <td title={(t.message || '').trim() || undefined}>{t.userType}</td>
+                                                    <td title={(t.message || '').trim() || undefined}>{t.subject}</td>
+                                                    <td title={(t.message || '').trim() || undefined}>{t.status}</td>
+                                                    <td>{new Date(t.createdAt).toLocaleString()}</td>
+                                                    <td>{Array.isArray(t.replies) ? t.replies.length : 0}</td>
+                                                    <td>
+                                                        <div style={{ display: 'flex', gap: 8 }}>
+                                                            <input
+                                                                value={t._replyDraft || ''}
+                                                                onChange={(e) => {
+                                                                    const draft = e.target.value;
+                                                                    setSupportTickets(prev => prev.map(x => x._id === t._id ? { ...x, _replyDraft: draft } : x));
+                                                                }}
+                                                                placeholder={t.status === 'closed' ? 'Closed' : 'Type a reply'}
+                                                                disabled={t.status === 'closed'}
+                                                            />
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSupportReply(t._replyDraft || '');
+                                                                    replyToTicket(t._id);
+                                                                }}
+                                                                disabled={supportLoading || t.status === 'closed'}
+                                                            >Send</button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </table>
                             </div>

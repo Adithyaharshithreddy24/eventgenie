@@ -82,7 +82,6 @@ export default function AdminChatMonitor() {
                             onClick={() => setActive(c)}
                         >
                             <div className="title">{custName} ↔ {vendName}</div>
-                            <div className="subtitle">{c.serviceCategory}</div>
                             <div className="time">{new Date(c.lastMessageAt).toLocaleString()}</div>
                         </div>
                     );

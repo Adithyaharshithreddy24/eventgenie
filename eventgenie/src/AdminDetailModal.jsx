@@ -65,7 +65,19 @@ function AdminDetailModal({ isOpen, onClose, entityType, entityId, entityData })
                         </div>
                     </div>
                 </div>
-
+                <div className="detail-section">
+                    <h3>Customer Statistics</h3>
+                    <div className="stats-grid">
+                        <div className="stat-item">
+                            <label>Total Bookings:</label>
+                            <span className="stat-value">{bookings.length}</span>
+                        </div>
+                        <div className="stat-item">
+                            <label>Total Expenditure (stored):</label>
+                            <span className="stat-value revenue">₹{customer.expenditure || 0}</span>
+                        </div>
+                    </div>
+                </div>
                 <div className="detail-section">
                     <h3>Booking History ({bookings.length})</h3>
                     {bookings.length > 0 ? (
@@ -105,19 +117,7 @@ function AdminDetailModal({ isOpen, onClose, entityType, entityId, entityData })
                         <p className="no-data">No bookings found</p>
                     )}
                 </div>
-                <div className="detail-section">
-                    <h3>Customer Statistics</h3>
-                    <div className="stats-grid">
-                        <div className="stat-item">
-                            <label>Total Bookings:</label>
-                            <span className="stat-value">{bookings.length}</span>
-                        </div>
-                        <div className="stat-item">
-                            <label>Total Expenditure (stored):</label>
-                            <span className="stat-value revenue">₹{customer.expenditure || 0}</span>
-                        </div>
-                    </div>
-                </div>
+
             </div>
         );
     };
